@@ -18,7 +18,7 @@ import "./SafeMathLib.sol";
  * - The token can be capped (supply set in the constructor) 
  *   or uncapped (crowdsale contract can mint new tokens)
  */
-contract DayToken is  ReleasableToken, MintableToken, UpgradeableToken {
+contract DebtToken is  ReleasableToken, MintableToken, UpgradeableToken {
 
     enum sellingStatus {NOTONSALE, EXPIRED, ONSALE}
 
@@ -132,7 +132,7 @@ contract DayToken is  ReleasableToken, MintableToken, UpgradeableToken {
         * @param _decimals Number of decimal places
         * _mintable Are new tokens created over the crowdsale or do we distribute only the initial supply?
         */
-    function DayToken(string _name, string _symbol, uint _initialSupply, uint8 _decimals, 
+    function DebtToken(string _name, string _symbol, uint _initialSupply, uint8 _decimals, 
         bool _mintable, uint _maxAddresses, uint _firstTeamContributorId, uint _totalTeamContributorIds, 
         uint _totalPostIcoContributorIds, uint256 _minMintingPower, uint256 _maxMintingPower, uint _halvingCycle, 
         uint256 _minBalanceToSell, uint256 _dayInSecs, uint256 _teamLockPeriodInSec) 
