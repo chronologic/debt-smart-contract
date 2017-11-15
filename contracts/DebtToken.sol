@@ -79,10 +79,6 @@ contract DebtToken is ERC20Basic,MintableToken{
     return (addr == debtOwner);
   }
   
-  //quicktest
-  function getNow() public constant returns (uint){return uint(now);}
-  function getNow8() public constant returns (uint256){return now;}
-  
   /**
   Check if the loan is mature for interest
   */
