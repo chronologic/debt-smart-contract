@@ -42,12 +42,12 @@ contract DebtToken is ERC20Basic,MintableToken{
       uint256 _interestRate,
       address _debtOwner
       ) {
-      balances[msg.sender] = _initialAmount;               // Give the creator all initial tokens
-      initialSupply = _initialAmount;                        // Update initial supply
+      exchangeRate = _exchangeRate;                           // Exchange rate for the coins
+      balances[msg.sender] = _initialAmount*exchangeRate;     // Give the creator all initial tokens
+      initialSupply = _initialAmount*exchangeRate;            // Update initial supply
       totalSupply = initialSupply;                           //Update total supply
       name = _tokenName;                                   // Set the name for display purposes
       decimals = _decimalUnits;                             // Amount of decimals for display purposes
-      exchangeRate = _exchangeRate;                           // Exchange rate for the coins
       symbol = _tokenSymbol;                              // Set the symbol for display purposes
       dayLength = _dayLength;                             //Set the length of each day in seconds...For dev purposes
       loanTerm = _loanTerm;                               //Set the number of days, for loan maturity
@@ -64,9 +64,9 @@ contract DebtToken is ERC20Basic,MintableToken{
   function getLoanValue(bool initial) public constant returns(uint){
     //TODO get a more dynamic way to calculate
     if(initial == true)
-      return totalSupply*exchangeRate*1 ether;
+      return totalSupply*exchangeRate;
     else
-      return (totalSupply - balances[owner])*exchangeRate*1 ether;
+      return (totalSupply - balances[owner])*exchangeRate;
   } 
     
   /**

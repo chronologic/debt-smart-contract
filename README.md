@@ -11,7 +11,7 @@
 |--|--------|--------------|
 |* | _tokenName: |  Name for the token |
 |* |_tokenSymbol: | Symbol for the token |
-|* |_initialAmount: | Actual amount of Ether requested |
+|* |_initialAmount: | Actual amount of Ether requested in WEI |
 |* |_exchangeRate: |  Amount of tokens per Ether |
 |* |_decimalUnits: | Number of Decimal places |
 |* |_dayLength: | Number of seconds in a day |
@@ -23,7 +23,7 @@
 #### Deploed values
   * _tokenName:  Performance Global Loan
   * _tokenSymbol:  PGLOAN
-  * _initialAmount: 500
+  * _initialAmount: 500000000000000000000
   * _exchangeRate:   1
   * _decimalUnits:   18
   * _dayLength:  86400
