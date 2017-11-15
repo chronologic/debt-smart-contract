@@ -30,10 +30,10 @@ contract DebtToken is ERC20Basic,MintableToken{
   function DebtToken(string _tokenName,
       string _tokenSymbol,
       uint256 _initialAmount,
-      uint8 _exchangeRate,
-      uint8 _decimalUnits,
-      uint8 _dayLength,
-      uint8 _loanTerm,
+      uint256 _exchangeRate,
+      uint256 _decimalUnits,
+      uint256 _dayLength,
+      uint256 _loanTerm,
       address _debtOwner
       ) {
       balances[msg.sender] = _initialAmount;               // Give the creator all initial tokens
@@ -43,7 +43,7 @@ contract DebtToken is ERC20Basic,MintableToken{
       decimals = uint8(_decimalUnits);                             // Amount of decimals for display purposes
       exchangeRate = uint8(_exchangeRate);                           // Exchange rate for the coins
       symbol = _tokenSymbol;                              // Set the symbol for display purposes
-      dayLength = _dayLength;                             //Set the length of each day in seconds...For dev purposes
+      dayLength = uint8(_dayLength);                             //Set the length of each day in seconds...For dev purposes
       loanTerm = uint8(_loanTerm);                               //Set the number of days, for loan maturity
       debtOwner = _debtOwner;                             //set Debt owner
       mintingFinished = true;                             //Disable minting  
