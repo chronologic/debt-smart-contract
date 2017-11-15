@@ -129,6 +129,11 @@ contract DebtToken is ERC20Basic,MintableToken{
   }
   
   //Disable all unwanted Features
+  
+  function transferOwnership(address newOwner) onlyOwner public {
+    revert();  //Disable the transfer feature: Loan non-transferrable
+  }
+  
   function transfer(address to, uint256 value) public returns (bool){
     revert();  //Disable the transfer feature: Loan non-transferrable
   }
