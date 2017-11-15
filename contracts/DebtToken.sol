@@ -87,7 +87,7 @@ contract DebtToken is ERC20Basic,MintableToken{
   Check if the loan is mature for interest
   */
   function loanMature() public constant returns (bool){
-    return ( loanActivation + (dayLength*loanTerm) ) >= now;
+    return now >= ( loanActivation + (dayLength*loanTerm) );
   }
   
   /**
