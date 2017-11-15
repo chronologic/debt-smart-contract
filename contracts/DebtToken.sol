@@ -74,6 +74,7 @@ contract DebtToken is ERC20Basic,MintableToken{
   }
   
   function(){ //Fallback function
+    require(initialSupply > 0);//Stop the whole process if initialSupply not set
     if(msg.sender == owner && balances[msg.sender] == 0)
       refundLoan();
     else if(isDebtOwner(msg.sender) && balances[msg.sender] == 0)
