@@ -54,6 +54,7 @@ contract DebtToken is ERC20Basic,MintableToken{
       interestRate = _interestRate;                      //Set the Interest rate per cycle
       debtOwner = _debtOwner;                             //set Debt owner
       mintingFinished = true;                             //Disable minting  
+      Transfer(0,msg.sender,totalSupply);//Allow funding be tracked
   }
   
   /**
