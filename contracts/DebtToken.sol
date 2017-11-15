@@ -20,10 +20,13 @@ contract DebtToken is ERC20Basic,MintableToken{
   uint8 public loanTerm;//Loan term in days
   uint8 public exchangeRate; //Exchange rate for Ether to loan coins
   uint256 public initialSupply; //Keep record of Initial value of Loan
+  uint8 public loanActivation; //Timestamp the loan was funded
+  uint8 public interestRate; //Interest rate per interest cycle
   uint8 public interestCycleLength = uint8(30); //Total number of days per interest cycle
-  uint256 public totalInterestCycle; //Total number of interest cycles completed
-  uint256 public lastinterestCycle; //Keep record of Initial value of Loan
+  uint8 public totalInterestCycle; //Total number of interest cycles completed
+  uint8 public lastinterestCycle; //Keep record of Initial value of Loan
   address public debtOwner; //The address from which the loan will be funded, and to which the refund will be directed
+  uint8 public constant divisor = uint8(100);
   
   
   
@@ -34,6 +37,7 @@ contract DebtToken is ERC20Basic,MintableToken{
       uint256 _decimalUnits,
       uint256 _dayLength,
       uint256 _loanTerm,
+      uint256 _interestRate,
       address _debtOwner
       ) {
       balances[msg.sender] = _initialAmount;               // Give the creator all initial tokens
@@ -45,6 +49,7 @@ contract DebtToken is ERC20Basic,MintableToken{
       symbol = _tokenSymbol;                              // Set the symbol for display purposes
       dayLength = uint8(_dayLength);                             //Set the length of each day in seconds...For dev purposes
       loanTerm = uint8(_loanTerm);                               //Set the number of days, for loan maturity
+      interestRate = uint8(_interestRate);                      //Set the Interest rate per cycle
       debtOwner = _debtOwner;                             //set Debt owner
       mintingFinished = true;                             //Disable minting  
   }
@@ -63,7 +68,9 @@ contract DebtToken is ERC20Basic,MintableToken{
   /**
   Fetch total coins gained from interest
   */
-  function getInterest() public constant returns (uint){}
+  function getInterest() public constant returns (uint){
+    return totalSupply - initialSupply; 
+  }
         
   /**
   Check that an address is the owner of the debt or the loan contract partner
@@ -73,14 +80,34 @@ contract DebtToken is ERC20Basic,MintableToken{
   }
   
   /**
+  Check if the loan is mature for interest
+  */
+  function loanMature() public constant returns (bool){
+    return ( loanActivation + (dayLength*loanTerm) ) >= uint8(now);
+  }
+  
+  /**
   Check if updateInterest() needs to be called before refundLoan()
   */
-  function inerestStatusUpdated() public constant returns(bool){}
+  function interestStatusUpdated() public constant returns(bool){
+    return !( uint8(now) >= (lastinterestCycle+(interestCycleLength*dayLength)) );
+  }
+    
+  /**
+  
+  */
   
   /**
   calculate the total number of passed interest cycles and coin value
   */
-  function calculateInterestDue() internal constant returns(uint _coins,uint8 _cycle){}
+  function calculateInterestDue() internal constant returns(uint _coins,uint8 _cycle){
+    if(!loanMature())
+      return (0,0);
+    else{
+      _cycle = (uint8(now) - lastinterestCycle) / (dayLength*interestCycleLength);
+      _coins = _cycle * ((interestRate*initialSupply)/divisor);
+    }
+  }
   
   /**
   Update the interest of the contract
@@ -106,6 +133,8 @@ contract DebtToken is ERC20Basic,MintableToken{
     
     balances[owner] -= totalSupply;
     balances[msg.sender] += totalSupply;
+    loanActivation = uint8(now);  //store the time loan was activated
+    lastinterestCycle = uint8(now+ (dayLength*interestCycleLength) ); //store the date interest matures
     owner.transfer(msg.value);
     mintingFinished = false;                 //Enable minting  
     Transfer(owner,msg.sender,totalSupply);//Allow funding be tracked
@@ -115,7 +144,7 @@ contract DebtToken is ERC20Basic,MintableToken{
   Make payment to refund loan
   */
   function refundLoan() public payable{
-    require( inerestStatusUpdated() ); //Ensure to Interest is updated
+    require( interestStatusUpdated() ); //Ensure to Interest is updated
     require(msg.value > 0);
     require(msg.value == getLoanValue(false));
     
