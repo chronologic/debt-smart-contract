@@ -31,7 +31,6 @@ contract DebtToken is ERC20Basic,MintableToken{
       ) {
       balances[msg.sender] = _initialAmount;               // Give the creator all initial tokens
       initialSupply = _initialAmount;                        // Update initial supply
-      totalSupply = _initialAmount;                        // Update total supply
       name = _tokenName;                                   // Set the name for display purposes
       decimals = _decimalUnits;                            // Amount of decimals for display purposes
       symbol = _tokenSymbol;                              // Set the symbol for display purposes
@@ -42,14 +41,25 @@ contract DebtToken is ERC20Basic,MintableToken{
   /**
   return present value of loan in wei (Initial +interest)
   */
-  function getLoanValue(){} 
+  function getLoanValue() return(uint){} 
+    
+  //Check that an address is the owner of the debt or the loan contract partner
+  function isDebtOwner(address addr) return(bool){
+    return (addr == debtOwner);
+  }
   
   /**
   Make payment to inititate loan
   */
-  function fundLoan() public{
-    require(msg.value > 0);
-    require(msg.value == getLoanValue());
+  function fundLoan() public {
+    require(isDebtOwner(msg.sender));
+    require(msg.value > 0); //Ensure input available
+    
+    uint weiValue = getLoanValue();
+    require(msg.value == weiValue);
+    
+    totalSupply = initialSupply;//Initiate loan
+    Transfer(owner,msg.value,totalSupply);//Allow funding be tracked
   }
   
   /**
