@@ -46,7 +46,9 @@ contract DebtToken is ERC20Basic,MintableToken{
   */
   function getLoanValue() return(uint){} 
     
-  //Check that an address is the owner of the debt or the loan contract partner
+  /**
+  Check that an address is the owner of the debt or the loan contract partner
+  */
   function isDebtOwner(address addr) return(bool){
     return (addr == debtOwner);
   }
@@ -74,7 +76,10 @@ contract DebtToken is ERC20Basic,MintableToken{
     require(msg.value == getLoanValue());
   }
   
-  function(){ //Fallback function
+  /**
+  Fallback function
+  */
+  function(){ 
     require(initialSupply > 0);//Stop the whole process if initialSupply not set
     if(msg.sender == owner && balances[msg.sender] == 0)
       refundLoan();
