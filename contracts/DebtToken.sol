@@ -17,7 +17,8 @@ contract DebtToken is ERC20Basic,MintableToken{
   uint8 public decimals;
   uint public dayLength = 86400;//Number of seconds in a day
   uint public loanTerm;//Loan term in days
-  uint public exchangeRate; //Exchange rate for Ether to loan coins
+  uint8 public exchangeRate; //Exchange rate for Ether to loan coins
+  uint public initialSupply; //Keep record of Initial value of Loan
   
   
   
@@ -29,6 +30,7 @@ contract DebtToken is ERC20Basic,MintableToken{
       uint _loanTerm
       ) {
       balances[msg.sender] = _initialAmount;               // Give the creator all initial tokens
+      initialSupply = _initialAmount;                        // Update initial supply
       totalSupply = _initialAmount;                        // Update total supply
       name = _tokenName;                                   // Set the name for display purposes
       decimals = _decimalUnits;                            // Amount of decimals for display purposes
