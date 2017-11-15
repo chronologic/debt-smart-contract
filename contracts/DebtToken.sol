@@ -20,6 +20,9 @@ contract DebtToken is ERC20Basic,MintableToken{
   uint8 public loanTerm;//Loan term in days
   uint8 public exchangeRate; //Exchange rate for Ether to loan coins
   uint256 public initialSupply; //Keep record of Initial value of Loan
+  uint8 public interestCycleLength = uint8(30); //Total number of days per interest cycle
+  uint256 public totalInterestCycle; //Total number of interest cycles completed
+  uint256 public lastinterestCycle; //Keep record of Initial value of Loan
   address public debtOwner; //The address from which the loan will be funded, and to which the refund will be directed
   
   
@@ -53,6 +56,8 @@ contract DebtToken is ERC20Basic,MintableToken{
   */
   function getInterest() public returns (uint){}
     
+  function calculateInterestDue() internal returns(uint _coins,uint8 _cycle){}
+    
   /**
   Check that an address is the owner of the debt or the loan contract partner
   */
@@ -63,7 +68,10 @@ contract DebtToken is ERC20Basic,MintableToken{
   /**
   Update the interest of the contract
   */
-  function updateInterest() public {}
+  function updateInterest() public {
+    uint interest = calculateInterestDue();
+    assert(interest._coins > 0 && interest._cycle > 0);
+  }
   
   /**
   Make payment to inititate loan
