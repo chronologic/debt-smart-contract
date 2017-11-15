@@ -10,3 +10,5 @@
  * _decimalUnits:   18
  * _dayLength:  86400
  * _loanTerm:   60
+ * _interestRate: 2
+ * _debtOwner: address
