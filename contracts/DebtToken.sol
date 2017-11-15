@@ -82,6 +82,7 @@ contract DebtToken is ERC20Basic,MintableToken{
     uint8 interest_cycle;
     (interest_coins,interest_cycle) = calculateInterestDue();
     assert(interest_coins > 0 && interest_cycle > 0);
+    totalInterestCycle += interest_cycle;
     super.mint(debtOwner , interest_coins);
   }
   
