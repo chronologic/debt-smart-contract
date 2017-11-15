@@ -28,6 +28,7 @@ contract DebtToken is ERC20Basic,MintableToken{
   address public debtOwner; //The address from which the loan will be funded, and to which the refund will be directed
   uint256 public constant divisor = 100;
   
+  // TODO Implement _decimalUnits;
   
   
   function DebtToken(string _tokenName,
