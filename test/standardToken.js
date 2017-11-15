@@ -22,7 +22,7 @@ describe('3. StandardToken :: ', function () {
         });
     });
 
-    describe.skip('Allocate Tokens ::',function(){
+    describe('Allocate Tokens ::',function(){
 
         it('Should fail to allocate Negative value tokens (Underflow)', function(done){
             var oldallowance = Number(contract.allowance.call(Me,accounts[1]) );
