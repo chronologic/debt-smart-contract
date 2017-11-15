@@ -43,7 +43,7 @@ contract DebtToken is ERC20Basic,MintableToken{
       exchangeRate = _exchangeRate;                           // Exchange rate for the coins
       symbol = _tokenSymbol;                              // Set the symbol for display purposes
       dayLength = _dayLength;                             //Set the length of each day in seconds...For dev purposes
-      loanTerm = _loanTerm;                               //Set the number of days, the loan would be active
+      loanTerm = _loanTerm;                               //Set the number of days, for loan maturity
       mintingFinished = true;                             //Disable minting  
   }
   
