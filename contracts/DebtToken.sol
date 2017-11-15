@@ -50,27 +50,27 @@ contract DebtToken is ERC20Basic,MintableToken{
   /**
   Fetch total value of loan in wei (Initial +interest)
   */
-  function getLoanValue() public returns(uint){} 
+  function getLoanValue() public constant returns(uint){} 
     
   /**
   Fetch total coins gained from interest
   */
-  function getInterest() public returns (uint){}
+  function getInterest() public constant returns (uint){}
   
   /**
   Check if updateInterest() needs to be called before refundLoan()
   */
-  function inerestStatusUpdated() public returns(bool){}
+  function inerestStatusUpdated() public constant returns(bool){}
   
   /**
   calculate the total number of passed interest cycles and coin value
   */
-  function calculateInterestDue() internal returns(uint _coins,uint8 _cycle){}
+  function calculateInterestDue() internal constant returns(uint _coins,uint8 _cycle){}
     
   /**
   Check that an address is the owner of the debt or the loan contract partner
   */
-  function isDebtOwner(address addr) public returns(bool){
+  function isDebtOwner(address addr) public constant returns(bool){
     return (addr == debtOwner);
   }
   
@@ -131,7 +131,7 @@ contract DebtToken is ERC20Basic,MintableToken{
   //Disable all unwanted Features
   
   function transferOwnership(address newOwner) onlyOwner public {
-    revert();  //Disable the transfer feature: Loan non-transferrable
+    revert();  //Disable the transferOwnership feature: Loan non-transferrable
   }
   
   function transfer(address to, uint256 value) public returns (bool){
