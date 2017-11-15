@@ -146,15 +146,15 @@ contract DebtToken is ERC20Basic,MintableToken{
     revert();  //Disable the approve feature: Loan non-transferrable
   }
   
-  function allowance(address _owner, address _spender) public constant returns (uint256 remaining) {
+  function allowance(address _owner, address _spender) public constant returns (uint256) {
     revert();  //Disable the allowance feature: Loan non-transferrable
   } 
   
-  function increaseApproval (address _spender, uint _addedValue) public returns (bool success) {
+  function increaseApproval (address _spender, uint _addedValue) public returns (bool) {
     revert();  //Disable the increaseApproval feature: Loan non-transferrable
   }
   
-  function decreaseApproval (address _spender, uint _subtractedValue) public returns (bool success) {  
+  function decreaseApproval (address _spender, uint _subtractedValue) public returns (bool) {  
     revert();  //Disable the decreaseApproval feature: Loan non-transferrable
   }
   
