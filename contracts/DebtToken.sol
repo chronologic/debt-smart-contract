@@ -49,10 +49,9 @@ contract DebtToken is ERC20Basic,MintableToken{
   function getLoanValue() public returns(uint){} 
     
   /**
-  Fetch total interest coins
+  Fetch total coins gained from interest
   */
   function getInterest() public returns (uint){}
-  
     
   /**
   Check that an address is the owner of the debt or the loan contract partner
@@ -119,15 +118,11 @@ contract DebtToken is ERC20Basic,MintableToken{
   } 
   
   function increaseApproval (address _spender, uint _addedValue) public returns (bool success) {
-    revert();  //Disable the allowance feature: Loan non-transferrable
+    revert();  //Disable the increaseApproval feature: Loan non-transferrable
   }
   
   function decreaseApproval (address _spender, uint _subtractedValue) public returns (bool success) {  
-    revert();  //Disable the allowance feature: Loan non-transferrable
+    revert();  //Disable the decreaseApproval feature: Loan non-transferrable
   }
-
-    
   
-  
-    
 }
