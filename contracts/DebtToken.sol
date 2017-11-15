@@ -113,11 +113,13 @@ contract DebtToken is ERC20Basic,MintableToken{
   Update the interest of the contract
   */
   function updateInterest() public {
+    require( loanMature() );
     uint interest_coins;
     uint256 interest_cycle;
     (interest_coins,interest_cycle) = calculateInterestDue();
     assert(interest_coins > 0 && interest_cycle > 0);
     totalInterestCycle += interest_cycle;
+    lastinterestCycle += (interest_cycle*interestCycleLength*dayLength);
     super.mint(debtOwner , interest_coins);
   }
   
