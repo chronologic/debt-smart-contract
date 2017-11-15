@@ -44,9 +44,15 @@ contract DebtToken is ERC20Basic,MintableToken{
   }
   
   /**
-  return present value of loan in wei (Initial +interest)
+  Fetch total value of loan in wei (Initial +interest)
   */
   function getLoanValue() public returns(uint){} 
+    
+  /**
+  Fetch total interest coins
+  */
+  function getInterest() public returns (uint){}
+  
     
   /**
   Check that an address is the owner of the debt or the loan contract partner
@@ -54,6 +60,11 @@ contract DebtToken is ERC20Basic,MintableToken{
   function isDebtOwner(address addr) public returns(bool){
     return (addr == debtOwner);
   }
+  
+  /**
+  Update the interest of the contract
+  */
+  function updateInterest() public {}
   
   /**
   Make payment to inititate loan
