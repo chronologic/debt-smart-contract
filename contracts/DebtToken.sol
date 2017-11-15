@@ -33,17 +33,19 @@ contract DebtToken is ERC20Basic,MintableToken{
       uint8 _exchangeRate,
       uint8 _decimalUnits,
       uint8 _dayLength,
-      uint8 _loanTerm
+      uint8 _loanTerm,
+      address _debtOwner
       ) {
       balances[msg.sender] = _initialAmount;               // Give the creator all initial tokens
       initialSupply = _initialAmount;                        // Update initial supply
       totalSupply = initialSupply;                           //Update total supply
       name = _tokenName;                                   // Set the name for display purposes
-      decimals = _decimalUnits;                             // Amount of decimals for display purposes
-      exchangeRate = _exchangeRate;                           // Exchange rate for the coins
+      decimals = uint8(_decimalUnits);                             // Amount of decimals for display purposes
+      exchangeRate = uint8(_exchangeRate);                           // Exchange rate for the coins
       symbol = _tokenSymbol;                              // Set the symbol for display purposes
       dayLength = _dayLength;                             //Set the length of each day in seconds...For dev purposes
-      loanTerm = _loanTerm;                               //Set the number of days, for loan maturity
+      loanTerm = uint8(_loanTerm);                               //Set the number of days, for loan maturity
+      debtOwner = _debtOwner;                             //set Debt owner
       mintingFinished = true;                             //Disable minting  
   }
   
@@ -56,6 +58,13 @@ contract DebtToken is ERC20Basic,MintableToken{
   Fetch total coins gained from interest
   */
   function getInterest() public constant returns (uint){}
+        
+  /**
+  Check that an address is the owner of the debt or the loan contract partner
+  */
+  function isDebtOwner(address addr) public constant returns(bool){
+    return (addr == debtOwner);
+  }
   
   /**
   Check if updateInterest() needs to be called before refundLoan()
@@ -66,13 +75,6 @@ contract DebtToken is ERC20Basic,MintableToken{
   calculate the total number of passed interest cycles and coin value
   */
   function calculateInterestDue() internal constant returns(uint _coins,uint8 _cycle){}
-    
-  /**
-  Check that an address is the owner of the debt or the loan contract partner
-  */
-  function isDebtOwner(address addr) public constant returns(bool){
-    return (addr == debtOwner);
-  }
   
   /**
   Update the interest of the contract
@@ -98,6 +100,7 @@ contract DebtToken is ERC20Basic,MintableToken{
     
     balances[owner] -= totalSupply;
     balances[msg.sender] += totalSupply;
+    owner.transfer(msg.value);
     mintingFinished = false;                 //Enable minting  
     Transfer(owner,msg.sender,totalSupply);//Allow funding be tracked
   }
