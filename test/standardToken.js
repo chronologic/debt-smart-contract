@@ -1,4 +1,4 @@
-//Base standard token test
+//implementation of the Base standard token test
 //https://github.com/adibas03/Solidity-truffle-tests/blob/master/test/03.%20StandardToken.js
 
 var DebtToken = artifacts.require('./DebtToken.sol');// Import contract of StandarTOken type
@@ -15,7 +15,7 @@ describe('3. StandardToken :: ', function () {
             accounts = inst.constructor.web3.eth.accounts;
             Me = accounts[0];
             
-            console.log('Contract',contract);
+            //console.log('Contract',contract);
 
             assert.notEqual(contract.address, null, 'Contract not successfully deployed');
             done();
