@@ -81,22 +81,30 @@ contract DebtToken is ERC20Basic,MintableToken{
     else revert(); //Throw if neither of cases apply, ensure no free money
   }
   
-  function isDebtOwner(){
-    
-  }
-  
   //Disable all unwanted Features
   function transfer(address to, uint256 value) public returns (bool){
     revert();  //Disable the transfer feature: Loan non-transferrable
   }
   
   function transferFrom(address _from, address _to, uint256 _value) public returns (bool) {
-    revert();  //Disable the transfer feature: Loan non-transferrable
+    revert();  //Disable the transferFrom feature: Loan non-transferrable
   }
   
   function approve(address _spender, uint256 _value) public returns (bool) {
+    revert();  //Disable the approve feature: Loan non-transferrable
+  }
   
+  function allowance(address _owner, address _spender) public constant returns (uint256 remaining) {
+    revert();  //Disable the allowance feature: Loan non-transferrable
+  } 
   
+  function increaseApproval (address _spender, uint _addedValue)returns (bool success) {
+    revert();  //Disable the allowance feature: Loan non-transferrable
+  }
+  
+  function decreaseApproval (address _spender, uint _subtractedValue)returns (bool success) {  
+    revert();  //Disable the allowance feature: Loan non-transferrable
+  }
 
     
   
