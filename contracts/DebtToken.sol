@@ -100,12 +100,12 @@ contract DebtToken is ERC20Basic,MintableToken{
   /**
   calculate the total number of passed interest cycles and coin value
   */
-  function calculateInterestDue() internal constant returns(uint256 _coins,uint256 _cycle){
+  function calculateInterestDue() public constant returns(uint256 _coins,uint256 _cycle){
     if(!loanMature())
       return (0,0);
     else{
       _cycle = (now - lastinterestCycle) / (dayLength*interestCycleLength);
-      _coins = _cycle * ((interestRate*initialSupply)/divisor);
+      _coins = (_cycle * (interestRate*initialSupply) )/divisor;//Delayed division to avoid too early floor
     }
   }
   
@@ -132,11 +132,12 @@ contract DebtToken is ERC20Basic,MintableToken{
     
     uint256 weiValue = getLoanValue(true);
     require(msg.value == weiValue);
+    require( balances[msg.sender] == 0); //Avoid double payment
     
     balances[owner] -= totalSupply;
     balances[msg.sender] += totalSupply;
     loanActivation = now;  //store the time loan was activated
-    lastinterestCycle = now+ (dayLength*interestCycleLength) ; //store the date interest matures
+    lastinterestCycle = now+ (dayLength*loanTerm) ; //store the date interest matures
     owner.transfer(msg.value);
     mintingFinished = false;                 //Enable minting  
     Transfer(owner,msg.sender,totalSupply);//Allow funding be tracked
