@@ -1,4 +1,5 @@
-
+import 'zeppelin/token/ERC20Basic.sol';
+import 'zeppelin/token/MintableToken.sol';
 
 pragma solidity ^0.4.13;
 
@@ -15,7 +16,7 @@ contract DebtToken is ERC20Basic,MintableToken{
   Actual logic data
   */
   uint8 public decimals;
-  uint8 public dayLength = 86400;//Number of seconds in a day
+  uint8 public dayLength = uint8(86400);//Number of seconds in a day
   uint8 public loanTerm;//Loan term in days
   uint8 public exchangeRate; //Exchange rate for Ether to loan coins
   uint256 public initialSupply; //Keep record of Initial value of Loan
