@@ -37,6 +37,7 @@ contract DebtToken is ERC20Basic,MintableToken{
       uint256 _decimalUnits,
       uint256 _dayLength,
       uint256 _loanTerm,
+      uint256 _loanCycle,
       uint256 _interestRate,
       address _debtOwner
       ) {
@@ -49,6 +50,7 @@ contract DebtToken is ERC20Basic,MintableToken{
       symbol = _tokenSymbol;                              // Set the symbol for display purposes
       dayLength = _dayLength;                             //Set the length of each day in seconds...For dev purposes
       loanTerm = _loanTerm;                               //Set the number of days, for loan maturity
+      interestCycleLength = _loanCycle;                   //set the Interest cycle period
       interestRate = _interestRate;                      //Set the Interest rate per cycle
       debtOwner = _debtOwner;                             //set Debt owner
       mintingFinished = true;                             //Disable minting  
