@@ -58,11 +58,12 @@ contract DebtToken is ERC20Basic,MintableToken{
     require(isDebtOwner(msg.sender));
     require(msg.value > 0); //Ensure input available
     
-    uint weiValue = getLoanValue();
+    uint256 weiValue = getLoanValue();
     require(msg.value == weiValue);
     
-    totalSupply = initialSupply;//Initiate loan
-    Transfer(owner,msg.value,totalSupply);//Allow funding be tracked
+    balances[owner] -= totalSupply;
+    balances[msg.sender] += totalSupply;
+    Transfer(owner,msg.sender,totalSupply);//Allow funding be tracked
   }
   
   /**
