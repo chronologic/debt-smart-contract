@@ -38,6 +38,52 @@ contract DebtToken is ERC20Basic,MintableToken{
       dayLength = _dayLength;                             //Set the length of each day in seconds...For dev purposes
       loanTerm = _loanTerm;                               //Set the number of days, the loan would be active      
   }
+  
+  /**
+  return present value of loan in wei (Initial +interest)
+  */
+  function getLoanValue(){} 
+  
+  /**
+  Make payment to inititate loan
+  */
+  function fundLoan() public{
+    require(msg.value > 0);
+    require(msg.value == getLoanValue());
+  }
+  
+  /**
+  Make payment to refund loan
+  */
+  function refundLoan() public{
+    require(msg.value > 0);
+    require(msg.value == getLoanValue());
+  }
+  
+  function(){ //Fallback function
+    if(msg.sender == owner && balances[msg.sender] == 0)
+      refundLoan();
+    else if(isDebtOwner(msg.sender) && balances[msg.sender] == 0)
+      fundLoan();
+    else revert(); //Throw if neither of cases apply, ensure no free money
+  }
+  
+  function isDebtOwner(){
+    
+  }
+  
+  //Disable all unwanted Features
+  function transfer(address to, uint256 value) public returns (bool){
+    revert();  //Disable the transfer feature: Loan non-transferrable
+  }
+  
+  function transferFrom(address _from, address _to, uint256 _value) public returns (bool) {
+    revert();  //Disable the transfer feature: Loan non-transferrable
+  }
+  
+  function approve(address _spender, uint256 _value) public returns (bool) {
+  
+  
 
     
   
