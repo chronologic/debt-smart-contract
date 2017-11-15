@@ -1,7 +1,7 @@
 import 'zeppelin/token/ERC20Basic.sol';
 import 'zeppelin/token/MintableToken.sol';
 
-pragma solidity ^0.4.13;
+pragma solidity ^0.4.15;
 
 contract DebtToken is ERC20Basic,MintableToken{
   
@@ -61,7 +61,6 @@ contract DebtToken is ERC20Basic,MintableToken{
   Check if updateInterest() needs to be called before refundLoan()
   */
   function inerestStatusUpdated() public returns(bool){}
-  
   
   /**
   calculate the total number of passed interest cycles and coin value
