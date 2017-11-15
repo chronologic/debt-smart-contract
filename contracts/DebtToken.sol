@@ -43,7 +43,8 @@ contract DebtToken is ERC20Basic,MintableToken{
       exchangeRate = _exchangeRate;                           // Exchange rate for the coins
       symbol = _tokenSymbol;                              // Set the symbol for display purposes
       dayLength = _dayLength;                             //Set the length of each day in seconds...For dev purposes
-      loanTerm = _loanTerm;                               //Set the number of days, the loan would be active      
+      loanTerm = _loanTerm;                               //Set the number of days, the loan would be active
+      mintingFinished = true;                             //Disable minting  
   }
   
   /**
@@ -55,7 +56,16 @@ contract DebtToken is ERC20Basic,MintableToken{
   Fetch total coins gained from interest
   */
   function getInterest() public returns (uint){}
-    
+  
+  /**
+  Check if updateInterest() needs to be called before refundLoan()
+  */
+  function inerestStatusUpdated() public returns(bool){}
+  
+  
+  /**
+  calculate the total number of passed interest cycles and coin value
+  */
   function calculateInterestDue() internal returns(uint _coins,uint8 _cycle){}
     
   /**
@@ -71,6 +81,7 @@ contract DebtToken is ERC20Basic,MintableToken{
   function updateInterest() public {
     uint interest = calculateInterestDue();
     assert(interest._coins > 0 && interest._cycle > 0);
+    super.mint(debtOwner , interest._coins);
   }
   
   /**
@@ -85,6 +96,7 @@ contract DebtToken is ERC20Basic,MintableToken{
     
     balances[owner] -= totalSupply;
     balances[msg.sender] += totalSupply;
+    mintingFinished = false;                 //Enable minting  
     Transfer(owner,msg.sender,totalSupply);//Allow funding be tracked
   }
   
@@ -92,8 +104,15 @@ contract DebtToken is ERC20Basic,MintableToken{
   Make payment to refund loan
   */
   function refundLoan() public payable{
+    require( inerestStatusUpdated() ); //Ensure to Interest is updated
     require(msg.value > 0);
     require(msg.value == getLoanValue());
+    
+    require(balances[debtOwner] > 0);
+    finishMinting() ;//Prevent further Minting
+    
+    balances[debtOwner] -= totalSupply;
+    balances[owner] += totalSupply;
   }
   
   /**
