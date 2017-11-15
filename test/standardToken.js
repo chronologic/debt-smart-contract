@@ -140,7 +140,7 @@ describe('3. StandardToken :: ', function () {
 
     })
 
-    describe.skip('Transfer Tokens ::',function(){
+    describe('Transfer Tokens ::',function(){
 
         it('Should fail to spend Negative token value from one rogue address to another (Underflow)',function(done){
 
