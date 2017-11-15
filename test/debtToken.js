@@ -9,11 +9,15 @@ contract('DebtToken', function(accounts){
     var deployment_config = {
       _tokenName:  'Performance Global Loan',
       _tokenSymbol:  'PGLOAN',
-      _initialAmount: 500,
+      //_initialAmount: 500,
+      _initialAmount: 5000000000000000000,//wei value of initial loan
       _exchangeRate:   1,
       _decimalUnits:   18,
-      _dayLength:  86400,
+      //_dayLength:  86400,
+      _dayLength:  10,
       _loanTerm:   60,
+      _loanCycle: 20,
+      _interestRate: 2,
       _debtOwner: accounts[1]
     }
 
@@ -26,6 +30,8 @@ contract('DebtToken', function(accounts){
             deployment_config._decimalUnits,
             deployment_config._dayLength,
             deployment_config._loanTerm,
+            deployment_config._loanCycle,
+            deployment_config._interestRate,
             deployment_config._debtOwner
         )
         .then(function(inst){
