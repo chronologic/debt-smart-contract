@@ -24,9 +24,9 @@ contract DebtToken is ERC20Basic,MintableToken{
   
   
   function DebtToken(string _tokenName,
-      string _tokenSymbol,,
+      string _tokenSymbol,
       uint256 _initialAmount,
-      uint8 exchangeRate,
+      uint8 _exchangeRate,
       uint8 _decimalUnits,
       uint8 _dayLength,
       uint8 _loanTerm
@@ -35,7 +35,8 @@ contract DebtToken is ERC20Basic,MintableToken{
       initialSupply = _initialAmount;                        // Update initial supply
       totalSupply = initialSupply;                           //Update total supply
       name = _tokenName;                                   // Set the name for display purposes
-      decimals = _decimalUnits;                            // Amount of decimals for display purposes
+      decimals = _decimalUnits;                             // Amount of decimals for display purposes
+      exchangeRate = _exchangeRate;                           // Exchange rate for the coins
       symbol = _tokenSymbol;                              // Set the symbol for display purposes
       dayLength = _dayLength;                             //Set the length of each day in seconds...For dev purposes
       loanTerm = _loanTerm;                               //Set the number of days, the loan would be active      
@@ -44,19 +45,19 @@ contract DebtToken is ERC20Basic,MintableToken{
   /**
   return present value of loan in wei (Initial +interest)
   */
-  function getLoanValue() return(uint){} 
+  function getLoanValue() public returns(uint){} 
     
   /**
   Check that an address is the owner of the debt or the loan contract partner
   */
-  function isDebtOwner(address addr) return(bool){
+  function isDebtOwner(address addr) public returns(bool){
     return (addr == debtOwner);
   }
   
   /**
   Make payment to inititate loan
   */
-  function fundLoan() public {
+  function fundLoan() public payable{
     require(isDebtOwner(msg.sender));
     require(msg.value > 0); //Ensure input available
     
@@ -71,7 +72,7 @@ contract DebtToken is ERC20Basic,MintableToken{
   /**
   Make payment to refund loan
   */
-  function refundLoan() public{
+  function refundLoan() public payable{
     require(msg.value > 0);
     require(msg.value == getLoanValue());
   }
@@ -79,7 +80,7 @@ contract DebtToken is ERC20Basic,MintableToken{
   /**
   Fallback function
   */
-  function(){ 
+  function() public payable{ 
     require(initialSupply > 0);//Stop the whole process if initialSupply not set
     if(msg.sender == owner && balances[msg.sender] == 0)
       refundLoan();
@@ -105,11 +106,11 @@ contract DebtToken is ERC20Basic,MintableToken{
     revert();  //Disable the allowance feature: Loan non-transferrable
   } 
   
-  function increaseApproval (address _spender, uint _addedValue)returns (bool success) {
+  function increaseApproval (address _spender, uint _addedValue) public returns (bool success) {
     revert();  //Disable the allowance feature: Loan non-transferrable
   }
   
-  function decreaseApproval (address _spender, uint _subtractedValue)returns (bool success) {  
+  function decreaseApproval (address _spender, uint _subtractedValue) public returns (bool success) {  
     revert();  //Disable the allowance feature: Loan non-transferrable
   }
 
