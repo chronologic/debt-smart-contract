@@ -52,7 +52,13 @@ contract DebtToken is ERC20Basic,MintableToken{
   /**
   Fetch total value of loan in wei (Initial +interest)
   */
-  function getLoanValue() public constant returns(uint){} 
+  function getLoanValue(bool initial) public constant returns(uint){
+    //TODO get a more dynamic way to calculate
+    if(initial == true)
+      return totalSupply*exchangeRate*1 ether;
+    else
+      return (totalSupply - balances[owner])*exchangeRate*1 ether;
+  } 
     
   /**
   Fetch total coins gained from interest
@@ -95,7 +101,7 @@ contract DebtToken is ERC20Basic,MintableToken{
     require(isDebtOwner(msg.sender));
     require(msg.value > 0); //Ensure input available
     
-    uint256 weiValue = getLoanValue();
+    uint256 weiValue = getLoanValue(true);
     require(msg.value == weiValue);
     
     balances[owner] -= totalSupply;
@@ -111,13 +117,15 @@ contract DebtToken is ERC20Basic,MintableToken{
   function refundLoan() public payable{
     require( inerestStatusUpdated() ); //Ensure to Interest is updated
     require(msg.value > 0);
-    require(msg.value == getLoanValue());
+    require(msg.value == getLoanValue(false));
     
     require(balances[debtOwner] > 0);
     finishMinting() ;//Prevent further Minting
     
     balances[debtOwner] -= totalSupply;
     balances[owner] += totalSupply;
+    debtOwner.transfer(msg.value);
+    Transfer(debtOwner,owner,totalSupply);//Allow funding be tracked
   }
   
   /**
