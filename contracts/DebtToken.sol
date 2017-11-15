@@ -158,4 +158,8 @@ contract DebtToken is ERC20Basic,MintableToken{
     revert();  //Disable the decreaseApproval feature: Loan non-transferrable
   }
   
+  function mint(address _to, uint256 _amount) onlyOwner canMint public returns (bool) { 
+    revert();  //Disable the decreaseApproval feature: Loan non-transferrable
+  }
+  
 }
