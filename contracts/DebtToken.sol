@@ -15,22 +15,25 @@ contract DebtToken is ERC20Basic,MintableToken{
   Actual logic data
   */
   uint8 public decimals;
-  uint public dayLength = 86400;//Number of seconds in a day
-  uint public loanTerm;//Loan term in days
+  uint8 public dayLength = 86400;//Number of seconds in a day
+  uint8 public loanTerm;//Loan term in days
   uint8 public exchangeRate; //Exchange rate for Ether to loan coins
-  uint public initialSupply; //Keep record of Initial value of Loan
+  uint256 public initialSupply; //Keep record of Initial value of Loan
+  address public debtOwner; //The address from which the loan will be funded, and to which the refund will be directed
   
   
   
-  function DebtToken(int256 _initialAmount,
-      string _tokenName,
+  function DebtToken(string _tokenName,
+      string _tokenSymbol,,
+      uint256 _initialAmount,
+      uint8 exchangeRate,
       uint8 _decimalUnits,
-      string _tokenSymbol,
-      uint _dayLength,
-      uint _loanTerm
+      uint8 _dayLength,
+      uint8 _loanTerm
       ) {
       balances[msg.sender] = _initialAmount;               // Give the creator all initial tokens
       initialSupply = _initialAmount;                        // Update initial supply
+      totalSupply = initialSupply;                           //Update total supply
       name = _tokenName;                                   // Set the name for display purposes
       decimals = _decimalUnits;                            // Amount of decimals for display purposes
       symbol = _tokenSymbol;                              // Set the symbol for display purposes
