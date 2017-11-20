@@ -162,7 +162,7 @@ contract DebtToken is ERC20Basic,MintableToken{
   */
   function refundLoan() public payable{
     if(! interestStatusUpdated() )
-        updateInterest(); //Ensure to Interest is updated
+        updateInterest(); //Ensure Interest is updated
     require(msg.value > 0);
     require(msg.value == getLoanValue(false));
 
