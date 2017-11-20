@@ -9,8 +9,8 @@ contract('DebtToken', function(accounts){
     var deployment_config = {
       _tokenName:  'Performance Global Loan',
       _tokenSymbol:  'PGLOAN',
-      //_initialAmount: 500,
-      _initialAmount: 5000000000000000000,//wei value of initial loan
+      _initialAmount: 5000000000000000000,
+      //_initialAmount: 500000000000000000000,//wei value of initial loan
       _exchangeRate:   1,
       _decimalUnits:   18,
       //_dayLength:  86400,
@@ -19,7 +19,8 @@ contract('DebtToken', function(accounts){
       _loanCycle: 20,
       _interestRate: 2,
       _debtOwner: accounts[1]
-    }
+    },
+    unit = Math.pow(10,deployment_config._decimalUnits);
 
     it('should deploy the contract', function (done) {
         DebtToken.new(
@@ -55,26 +56,49 @@ contract('DebtToken', function(accounts){
         });
     });
 
-    describe.skip('Loan Activation',function(){
+    describe('Loan Activation',function(){
 
-        it('Should fail to send wrong amount to the contract from non-debtOwner',{
+        it('Should fail to send wrong amount to the contract from non-debtOwner',function(done){
+            var _value = web3.toWei(2, 'ether');
+            web3.eth.sendTransaction({from:accounts[2],to:contract.address,value:_value},function(e,r){
+              assert.notEqual(e,null,'Wrong amount used to fund loan by non-debtOwner');
+              done();
+            });
+        });
 
-        })
+        it('Should fail to send right amount to the contract from non-debtOwner',function(done){
+          var _value = deployment_config._initialAmount;
+          web3.eth.sendTransaction({from:accounts[2],to:contract.address,value:_value},function(e,r){
+            assert.notEqual(e,null,'Loan funded by non-debtOwner');
+            done();
+          });
+        });
 
-        it('Should fail to send right amount to the contract from non-debtOwner',{
+        it('Should fail to send wrong amount to the contract from debtOwner',function(done){
+          var _value = web3.toWei(2, 'ether'),
+          debtOwner = deployment_config._debtOwner;
+          web3.eth.sendTransaction({from:debtOwner,to:contract.address,value:_value},function(e,r){
+            assert.notEqual(e,null,'Wrong amount used to fund loan');
+            done();
+          });
+        });
 
-        })
+        it('Should send right amount to the contract from debtOwner',function(done){
+          var _debtOwner = contract.debtOwner.call(),
+          _value = contract.getLoanValue.call(true),
+          txn = {from:_debtOwner,to:contract.address,value: _value, gas: 210000 };
 
-        it('Should fail to send wrong amount to the contract from debtOwner',{
-
-        })
-
-        it('Should send right amount to the contract from debtOwner',{
-
-        })
+          web3.eth.sendTransaction(txn,function(e,r){
+            var balance = contract.balanceOf.call(_debtOwner);
+            var totalSupply = contract.actualTotalSupply.call();
+            assert.equal(e,null,'Loan not successfully funded by debtOwner');
+            assert.equal(Number(balance),Number(totalSupply),'Wrong number of tokens assigned to debtOwner');
+            done();
+          });
+        });
     })
 
-    describe('Interest Accruing ',function(){
+    describe.skip('Interest Accruing ',function(){
         it('Should fetch interestUpdated satus',{
 
         })
@@ -93,7 +117,7 @@ contract('DebtToken', function(accounts){
 
     })
 
-    describe('Loan Refund',function(){
+    describe.skip('Loan Refund',function(){
         it('Should fail to refund amount diffferent from total due',{
 
         })
