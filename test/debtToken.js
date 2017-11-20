@@ -74,4 +74,19 @@ contract('DebtToken', function(accounts){
         })
     })
 
+    describe('Interest Accruing ',function(){
+        it('Should fetch interestUpdated satus',{
+
+        })
+
+        it('Should run updateInterest function from any address',{
+
+        })
+
+        it('Should not allow raceCondition on updateInterest function',{
+
+        })
+
+    })
+
   });
