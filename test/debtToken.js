@@ -1,11 +1,11 @@
 var DebtToken = artifacts.require('./DebtToken.sol');// Import contract of StandarTOken type
 
 contract('DebtToken', function(accounts){
-  
+
     var contract,web3,Me;
     const _1ether = 1e+18;
     Me = accounts[0];
-    
+
     var deployment_config = {
       _tokenName:  'Performance Global Loan',
       _tokenSymbol:  'PGLOAN',
@@ -37,8 +37,8 @@ contract('DebtToken', function(accounts){
         .then(function(inst){
             contract = inst.contract;
             web3 = inst.constructor.web3;
-            
-            
+
+
             console.log('Address:',contract.address );
             contract.name(function(e,r){
                 console.log('Name:', r);
@@ -54,5 +54,24 @@ contract('DebtToken', function(accounts){
             done();
         });
     });
-    
+
+    describe.skip('Loan Activation',function(){
+
+        it('Should fail to send wrong amount to the contract from non-debtOwner',{
+
+        })
+
+        it('Should fail to send right amount to the contract from non-debtOwner',{
+
+        })
+
+        it('Should fail to send wrong amount to the contract from debtOwner',{
+
+        })
+
+        it('Should send right amount to the contract from debtOwner',{
+
+        })
+    })
+
   });
