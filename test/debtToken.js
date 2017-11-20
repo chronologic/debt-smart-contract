@@ -98,20 +98,41 @@ contract('DebtToken', function(accounts){
         });
     })
 
-    describe.skip('Interest Accruing ',function(){
-        it('Should fetch interestUpdated satus',{
+    describe('Interest Accruing ',function(){
+        it('Should fetch interestUpdated satus',function(){
+            var interestStatusUpdated = contract.interestStatusUpdated.call();
+
+            assert.notEqual(interestStatusUpdated,null, 'Did not successfully fetch interestStatusUpdated value, instead "'+interestStatusUpdated+'"');
+        })
+
+        it.skip('Should run updateInterest function from any address',function(done){
+
+          function doUpdate(){
+            contract.updateInterest({from:accounts[3]},function(e,r){
+              assert.equal(e,null,'Random address could not run updateInterest functon');
+              console.log(e,r);
+              done()
+            });
+          }
+
+          function checkMature(){
+              if(!contract.loanMature() ){
+                  console.log('.');
+                  setTimeout(checkMature(),20000);
+              }
+              else {
+                doUpdate();
+              }
+          }
+
+          checkMature();
+        })
+
+        it.skip('Should not allow raceCondition on updateInterest function',{
 
         })
 
-        it('Should run updateInterest function from any address',{
-
-        })
-
-        it('Should not allow raceCondition on updateInterest function',{
-
-        })
-
-        it('Should fail to allow owner run finishMinting function',{
+        it.skip('Should fail to allow owner run finishMinting function',{
 
         })
 
