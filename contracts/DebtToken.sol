@@ -54,53 +54,60 @@ contract DebtToken is ERC20Basic,MintableToken{
       interestCycleLength = _loanCycle;                   //set the Interest cycle period
       interestRate = _interestRate;                      //Set the Interest rate per cycle
       debtOwner = _debtOwner;                             //set Debt owner
-      mintingFinished = true;                             //Disable minting  
+      mintingFinished = true;                             //Disable minting
       Transfer(0,msg.sender,totalSupply);//Allow funding be tracked
   }
-  
+
+  function actualTotalSupply(){
+    uint256 coins;
+    uint256 cycle;
+    (coins,cycle) = calculateInterestDue();
+    return totalSupply+coins;
+  }
+
   /**
   Fetch total value of loan in wei (Initial +interest)
   */
   function getLoanValue(bool initial) public constant returns(uint){
     //TODO get a more dynamic way to calculate
     if(initial == true)
-      return totalSupply*exchangeRate;
+      return initialSupply*exchangeRate;
     else
-      return (totalSupply - balances[owner])*exchangeRate;
-  } 
-    
+      return (actualTotalSupply() - balances[owner])*exchangeRate;
+  }
+
   /**
   Fetch total coins gained from interest
   */
   function getInterest() public constant returns (uint){
-    return totalSupply - initialSupply; 
+    return actualTotalSupply() - initialSupply;
   }
-        
+
   /**
   Check that an address is the owner of the debt or the loan contract partner
   */
   function isDebtOwner(address addr) public constant returns(bool){
     return (addr == debtOwner);
   }
-  
+
   /**
   Check if the loan is mature for interest
   */
   function loanMature() public constant returns (bool){
     return now >= ( loanActivation + (dayLength*loanTerm) );
   }
-  
+
   /**
   Check if updateInterest() needs to be called before refundLoan()
   */
   function interestStatusUpdated() public constant returns(bool){
     return !( now >= (lastinterestCycle+(interestCycleLength*dayLength)) );
   }
-    
+
   /**
-  
+
   */
-  
+
   /**
   calculate the total number of passed interest cycles and coin value
   */
@@ -126,48 +133,49 @@ contract DebtToken is ERC20Basic,MintableToken{
     lastinterestCycle += (interest_cycle*interestCycleLength*dayLength);
     super.mint(debtOwner , interest_coins);
   }
-  
+
   /**
   Make payment to inititate loan
   */
   function fundLoan() public payable{
     require(isDebtOwner(msg.sender));
     require(msg.value > 0); //Ensure input available
-    
+
     uint256 weiValue = getLoanValue(true);
     require(msg.value == weiValue);
     require( balances[msg.sender] == 0); //Avoid double payment
-    
+
     balances[owner] -= totalSupply;
     balances[msg.sender] += totalSupply;
     loanActivation = now;  //store the time loan was activated
     lastinterestCycle = now+ (dayLength*loanTerm) ; //store the date interest matures
     owner.transfer(msg.value);
-    mintingFinished = false;                 //Enable minting  
+    mintingFinished = false;                 //Enable minting
     Transfer(owner,msg.sender,totalSupply);//Allow funding be tracked
   }
-  
+
   /**
   Make payment to refund loan
   */
   function refundLoan() public payable{
-    require( interestStatusUpdated() ); //Ensure to Interest is updated
+    if(! interestStatusUpdated() )
+        updateInterest(); //Ensure to Interest is updated
     require(msg.value > 0);
     require(msg.value == getLoanValue(false));
-    
+
     require(balances[debtOwner] > 0);
     finishMinting() ;//Prevent further Minting
-    
+
     balances[debtOwner] -= totalSupply;
     balances[owner] += totalSupply;
     debtOwner.transfer(msg.value);
     Transfer(debtOwner,owner,totalSupply);//Allow funding be tracked
   }
-  
+
   /**
   Fallback function
   */
-  function() public payable{ 
+  function() public payable{
     require(initialSupply > 0);//Stop the whole process if initialSupply not set
     if(msg.sender == owner && balances[msg.sender] == 0)
       refundLoan();
