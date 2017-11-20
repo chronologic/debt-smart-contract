@@ -164,7 +164,7 @@ contract DebtToken is ERC20Basic,MintableToken{
     require(msg.value == getLoanValue(false));
 
     require(balances[debtOwner] > 0);
-    finishMinting() ;//Prevent further Minting
+    super.finishMinting() ;//Prevent further Minting
 
     balances[debtOwner] -= totalSupply;
     balances[owner] += totalSupply;
@@ -183,35 +183,39 @@ contract DebtToken is ERC20Basic,MintableToken{
       fundLoan();
     else revert(); //Throw if neither of cases apply, ensure no free money
   }
-  
+
   //Disable all unwanted Features
-  
+
   function transferOwnership(address newOwner) onlyOwner public {
     revert();  //Disable the transferOwnership feature: Loan non-transferrable
   }
-  
+
   function transfer(address to, uint256 value) public returns (bool){
     revert();  //Disable the transfer feature: Loan non-transferrable
   }
-  
+
   function transferFrom(address _from, address _to, uint256 _value) public returns (bool) {
     revert();  //Disable the transferFrom feature: Loan non-transferrable
   }
-  
+
   function approve(address _spender, uint256 _value) public returns (bool) {
     revert();  //Disable the approve feature: Loan non-transferrable
   }
-  
+
   function allowance(address _owner, address _spender) public constant returns (uint256) {
     revert();  //Disable the allowance feature: Loan non-transferrable
-  } 
-  
+  }
+
   function increaseApproval (address _spender, uint _addedValue) public returns (bool) {
     revert();  //Disable the increaseApproval feature: Loan non-transferrable
   }
-  
-  function decreaseApproval (address _spender, uint _subtractedValue) public returns (bool) {  
+
+  function decreaseApproval (address _spender, uint _subtractedValue) public returns (bool) {
     revert();  //Disable the decreaseApproval feature: Loan non-transferrable
   }
-  
+
+  function finishMinting() onlyOwner public returns (bool) {
+    revert();  //Disable the external control of finishMinting
+  }
+
 }
