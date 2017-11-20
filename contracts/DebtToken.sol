@@ -58,7 +58,7 @@ contract DebtToken is ERC20Basic,MintableToken{
       Transfer(0,msg.sender,totalSupply);//Allow funding be tracked
   }
 
-  function actualTotalSupply(){
+  function actualTotalSupply() public constant returns(uint) {
     uint256 coins;
     uint256 cycle;
     (coins,cycle) = calculateInterestDue();
