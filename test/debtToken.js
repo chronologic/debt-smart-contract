@@ -118,7 +118,7 @@ contract('DebtToken', function(accounts){
           function checkMature(){
               if(!contract.loanMature() ){
                   console.log('.');
-                  setTimeout(checkMature(),20000);
+                  setTimeout(checkMature(),20000);//TODO:Truffle does not mine if no transaction, so time not advance
               }
               else {
                 doUpdate();
