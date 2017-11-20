@@ -89,4 +89,19 @@ contract('DebtToken', function(accounts){
 
     })
 
+    describe('Loan Refund',function(){
+        it('Should fail to refund amount diffferent from total due',{
+
+        })
+
+        it('Should fail to refund correct amount from non-owner',{
+
+        })
+
+        it('Should successfully refund correct amount',{
+
+        })
+
+    })
+
   });
