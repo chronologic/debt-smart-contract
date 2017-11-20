@@ -87,6 +87,10 @@ contract('DebtToken', function(accounts){
 
         })
 
+        it('Should fail to allow owner run finishMinting function',{
+
+        })
+
     })
 
     describe('Loan Refund',function(){
