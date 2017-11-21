@@ -31,6 +31,7 @@
   * _loanCycle: 30
   * _interestRate: 2
   * _debtOwner: address  
+
 _ *_
 
 ### Tests
