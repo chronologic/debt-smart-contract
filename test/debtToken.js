@@ -201,6 +201,59 @@ contract('DebtToken', function(accounts){
           });
         })
 
+        it('Should successfully refund before contract maturation',function(done){
+          var newcontract;
+
+          DebtToken.new(
+              deployment_config._tokenName,
+              deployment_config._tokenSymbol,
+              deployment_config._initialAmount,
+              deployment_config._exchangeRate,
+              deployment_config._decimalUnits,
+              deployment_config._dayLength,
+              deployment_config._loanTerm,
+              deployment_config._loanCycle,
+              deployment_config._interestRate,
+              deployment_config._debtOwner
+          )
+          .then(function(inst){
+              newcontract = inst.contract;
+              assert.notEqual(contract.address, null, 'Contract not successfully deployed');
+
+              var _debtOwner = newcontract.debtOwner.call(),
+              _value = newcontract.getLoanValue.call(true),
+              _mybal = web3.eth.getBalance(Me),
+              txn = {from:_debtOwner,to:newcontract.address,value: _value, gas: 210000 };
+
+              web3.eth.sendTransaction(txn,function(e,r){
+
+                var _debtOwner = newcontract.debtOwner.call(),
+                balance = newcontract.balanceOf.call(_debtOwner),
+                totalSupply = newcontract.actualTotalSupply.call();
+                _mynewbal = web3.eth.getBalance(Me);
+
+                assert.equal(e,null,'Loan not successfully funded by debtOwner');
+                assert.equal(Number(balance),Number(totalSupply),'Wrong number of tokens assigned to debtOwner');
+                assert.equal(Number(_mynewbal),Number(_mybal)+ deployment_config._initialAmount,'Wrong value of Ether sent to Owner');
+
+                      var _value = newcontract.getLoanValue.call(false),//fetch the initial loan value
+                      _debtOwner = newcontract.debtOwner.call(),
+                      _debtownerbal = web3.eth.getBalance(_debtOwner);
+                      console.log('Loan Maturity:', newcontract.loanMature.call() );
+
+                      web3.eth.sendTransaction({from:Me,to:newcontract.address,value:_value},function(e,r){
+
+                        var balance = newcontract.balanceOf.call(Me),
+                        totalSupply = newcontract.actualTotalSupply.call();
+                        _debtownernewbal = web3.eth.getBalance(_debtOwner);
+                        assert.equal(e,null,'Loan not successfully refunded by Owner');
+                        assert.equal(Number(balance),Number(totalSupply),'Wrong number of tokens refunded to Owner');
+                        assert.equal(Number(_debtownernewbal),Number(_debtownerbal)+ Number(_value),'Wrong value of Ether sent to debtOwner');
+                        done();
+                      });
+              });
+          });
+        });
     })
 
   });
