@@ -20,7 +20,7 @@
 |* |_interestRate: | Interest rate (Percentage) |
 |* |_debtOwner: | Lender address |
 
-#### Deploed values
+#### Deployed values
   * _tokenName:  Performance Global Loan
   * _tokenSymbol:  PGLOAN
   * _initialAmount: 500000000000000000000
@@ -30,4 +30,15 @@
   * _loanTerm:   60
   * _loanCycle: 30
   * _interestRate: 2
-  * _debtOwner: address
+  * _debtOwner: address  
+_ *_
+
+### Tests
+  * Test actual functionality of debt-smart-contract
+  ~~~
+  truffle test test/debtToken.js
+  ~~~
+  * Test that resricted Token functions are restricted :
+  ~~~
+  truffle test test/standardToken.js
+  ~~~
