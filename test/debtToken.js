@@ -110,27 +110,21 @@ contract('DebtToken', function(accounts){
             assert.notEqual(interestStatusUpdated,null, 'Did not successfully fetch interestStatusUpdated value, instead "'+interestStatusUpdated+'"');
         })
 
-        it.skip('Should run updateInterest function from any address',function(done){
+        it('Should run updateInterest function from any address',function(done){
 
           function doUpdate(){
             contract.updateInterest({from:accounts[3]},function(e,r){
               assert.equal(e,null,'Random address could not run updateInterest functon');
-              console.log(e,r);
               done()
             });
           }
 
-          function checkMature(){
-              if(!contract.loanMature() ){
-                  console.log('.');
-                  setTimeout(checkMature(),20000);//TODO:Truffle does not mine if no transaction, so time not advance
-              }
-              else {
-                doUpdate();
-              }
-          }
+          //Update EVM time to required time
+          var time = deployment_config._loanTerm*deployment_config._dayLength*1000;
+          forceMine(time);
 
-          checkMature();
+          assert.equal(contract.loanMature.call(),true,'Loan not mature in due time ( '+web3.eth.getBlock('latest').timestamp+' )');
+          doUpdate();
         })
 
         it.skip('Should not allow raceCondition on updateInterest function',{
