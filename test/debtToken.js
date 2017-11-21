@@ -22,6 +22,11 @@ contract('DebtToken', function(accounts){
     },
     unit = Math.pow(10,deployment_config._decimalUnits);
 
+    function forceMine(time){
+      web3.currentProvider.send({jsonrpc: "2.0", method: "evm_increaseTime", params: [time], id: 123});
+      web3.currentProvider.send({jsonrpc: "2.0", method: "evm_mine", params: [], id: 0})
+    }
+
     it('should deploy the contract', function (done) {
         DebtToken.new(
             deployment_config._tokenName,
