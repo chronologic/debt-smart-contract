@@ -91,13 +91,16 @@ contract('DebtToken', function(accounts){
         it('Should send right amount to the contract from debtOwner',function(done){
           var _debtOwner = contract.debtOwner.call(),
           _value = contract.getLoanValue.call(true),
+          _mybal = web3.eth.getBalance(Me),
           txn = {from:_debtOwner,to:contract.address,value: _value, gas: 210000 };
 
           web3.eth.sendTransaction(txn,function(e,r){
-            var balance = contract.balanceOf.call(_debtOwner);
-            var totalSupply = contract.actualTotalSupply.call();
+            var balance = contract.balanceOf.call(_debtOwner),
+            totalSupply = contract.actualTotalSupply.call();
+            _mynewbal = web3.eth.getBalance(Me);
             assert.equal(e,null,'Loan not successfully funded by debtOwner');
             assert.equal(Number(balance),Number(totalSupply),'Wrong number of tokens assigned to debtOwner');
+            assert.equal(Number(_mynewbal),Number(_mybal)+ deployment_config._initialAmount,'Wrong value of Ether sent to Owner');
             done();
           });
         });
