@@ -9,7 +9,7 @@ contract('DebtToken', function(accounts){
     var deployment_config = {
       _tokenName:  'Performance Global Loan',
       _tokenSymbol:  'PGLOAN',
-      _initialAmount: 5000000000000000000,
+      _initialAmount: 500000000000000000,
       //_initialAmount: 500000000000000000000,//wei value of initial loan
       _exchangeRate:   1,
       _decimalUnits:   18,
@@ -163,22 +163,42 @@ contract('DebtToken', function(accounts){
             contract.finishMinting({from:Me},function(e,r){
               assert.notEqual(e,null,'Owner successfuly prevented minting without refunding Loan');
               done();
-            })
+            });
         })
 
     })
 
-    describe.skip('Loan Refund',function(){
-        it('Should fail to refund amount diffferent from total due',{
-
+    describe('Loan Refund',function(){
+        it('Should fail to refund amount diffferent from total due',function(done){
+            var _value = contract.getLoanValue.call(true);//fetch the initial loan value
+            web3.eth.sendTransaction({from:Me,to:contract.address,value:_value},function(e,r){
+              assert.notEqual(e,null,'Owner refunded Loan with wrong (initial without interest) amount');
+              done();
+            });
         })
 
-        it('Should fail to refund correct amount from non-owner',{
-
+        it('Should fail to refund correct amount from non-owner',function(done){
+          var _value = contract.getLoanValue.call(false);//fetch the initial loan value
+          web3.eth.sendTransaction({from:accounts[3],to:contract.address,value:_value},function(e,r){
+            assert.notEqual(e,null,'Non-Owner successfully refunded Loan');
+            done();
+          });
         })
 
-        it('Should successfully refund correct amount',{
+        it('Should successfully refund correct amount',function(done){
+          var _value = contract.getLoanValue.call(false),//fetch the initial loan value
+          _debtOwner = contract.debtOwner.call(),
+          _debtownerbal = web3.eth.getBalance(_debtOwner);
 
+          web3.eth.sendTransaction({from:Me,to:contract.address,value:_value},function(e,r){
+            var balance = contract.balanceOf.call(Me),
+            totalSupply = contract.actualTotalSupply.call();
+            _debtownernewbal = web3.eth.getBalance(_debtOwner);
+            assert.equal(e,null,'Loan not successfully refunded by Owner');
+            assert.equal(Number(balance),Number(totalSupply),'Wrong number of tokens refunded to Owner');
+            assert.equal(Number(_debtownernewbal),Number(_debtownerbal)+ Number(_value),'Wrong value of Ether sent to debtOwner');
+            done();
+          });
         })
 
     })
