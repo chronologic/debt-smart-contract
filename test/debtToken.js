@@ -127,12 +127,40 @@ contract('DebtToken', function(accounts){
           doUpdate();
         })
 
-        it.skip('Should not allow raceCondition on updateInterest function',{
+        it('Should not allow race condition on updateInterest function',function(done){
+          //Update EVM time to required time
+          var alldone=0,
+          time = deployment_config._loanCycle*2*deployment_config._dayLength*1000;
+          forceMine(time);
+
+          var actualTotalSupply = contract.actualTotalSupply.call();
+
+          contract.updateInterest({from:accounts[3]},function(e,r){
+            var totalSupply = contract.totalSupply.call();
+            assert.equal(Number(totalSupply) == Number(actualTotalSupply),true,'Leakage allowed mutiple runs of updateInterest: '+Number(totalSupply)+' !== '+Number(actualTotalSupply) );
+            alldone++;
+            checkDone();
+          })
+
+          contract.updateInterest({from:accounts[3]},function(e,r){
+            var totalSupply = contract.totalSupply.call();
+            assert.equal(Number(totalSupply) == Number(actualTotalSupply),true,'Leakage allowed mutiple runs of updateInterest: '+Number(totalSupply)+' !== '+Number(actualTotalSupply) );
+            alldone++;
+            checkDone();
+          })
+
+          function checkDone(){
+            if(alldone>1)
+              done();
+          }
 
         })
 
-        it.skip('Should fail to allow owner run finishMinting function',{
-
+        it('Should fail to allow owner run finishMinting function',function(done){
+            contract.finishMinting({from:Me},function(e,r){
+              assert.notEqual(e,null,'Owner successfuly prevented minting without refunding Loan');
+              done();
+            })
         })
 
     })
