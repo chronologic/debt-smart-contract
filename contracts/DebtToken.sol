@@ -104,7 +104,10 @@ contract DebtToken is ERC20Basic,MintableToken{
   Check if updateInterest() needs to be called before refundLoan()
   */
   function interestStatusUpdated() public constant returns(bool){
-    return !( now >= (lastinterestCycle+(interestCycleLength*dayLength)) );
+    if(!loanMature())
+      return true;
+    else
+      return !( now >= (lastinterestCycle+(interestCycleLength*dayLength)) );
   }
 
   /**
