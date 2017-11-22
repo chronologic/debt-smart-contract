@@ -1,5 +1,5 @@
-# debt-smart-contract [WIP]
-* Under development.
+# debt-smart-contract [POC]
+* First iteration.
 
 
 
@@ -32,7 +32,7 @@
   * _interestRate: 2
   * _debtOwner: address  
 
-_ *_
+
 
 ### Tests
   * Test actual functionality of debt-smart-contract
