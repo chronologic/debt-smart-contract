@@ -24,5 +24,8 @@
   "bugs": {
     "url": "https://github.com/chronologic/debt-smart-contract/issues"
   },
-  "homepage": "https://github.com/chronologic/debt-smart-contract#readme"
+  "homepage": "https://github.com/chronologic/debt-smart-contract#readme",
+  "dependencies": {
+    "package-name": "^0.1.0"
+  }
 }
