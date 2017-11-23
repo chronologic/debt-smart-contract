@@ -120,6 +120,8 @@ contract DebtToken is ERC20Basic,MintableToken{
   function calculateInterestDue() public constant returns(uint256 _coins,uint256 _cycle){
     if(!loanMature())
       return (0,0);
+    else if(balances[debtOwner] == 0)
+      return (0,0);
     else{
       uint timeDiff = now.sub(lastinterestCycle);
       _cycle = timeDiff.div(dayLength.mul(interestCycleLength) );
