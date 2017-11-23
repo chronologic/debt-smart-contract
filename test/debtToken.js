@@ -2,7 +2,7 @@ var DebtToken = artifacts.require('./DebtToken.sol');// Import contract of Stand
 
 contract('DebtToken', function(accounts){
 
-    var contract,web3,Me;
+    var contract,newcontract,web3,Me;
     const _1ether = 1e+18;
     Me = accounts[0];
 
@@ -202,7 +202,6 @@ contract('DebtToken', function(accounts){
         })
 
         it('Should successfully refund before contract maturation',function(done){
-          var newcontract;
 
           DebtToken.new(
               deployment_config._tokenName,
@@ -254,6 +253,21 @@ contract('DebtToken', function(accounts){
               });
           });
         });
+        
+        it('Should confirm loanValue does not increase after refundLoan',function(done){
+          var time = deployment_config._loanCycle*2*deployment_config._dayLength*1000;
+          forceMine(time);
+          
+          totalSupply = contract.totalSupply.call(),
+          actualTotalSupply = contract.actualTotalSupply.call();
+          
+          newtotalSupply = newcontract.totalSupply.call(),
+          newactualTotalSupply = newcontract.actualTotalSupply.call();
+          
+          assert.equal( Number(totalSupply), Number(actualTotalSupply, 'Loan increased from '+totalSupply+' to '+actualTotalSupply+' after loan was repaid') );
+          assert.equal( Number(newtotalSupply), Number(newactualTotalSupply, 'New Loan increased from '+newtotalSupply+' to '+newactualTotalSupply+' after loan was repaid') );        
+        })
+        
     })
 
   });
