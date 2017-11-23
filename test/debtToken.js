@@ -265,7 +265,8 @@ contract('DebtToken', function(accounts){
           newactualTotalSupply = newcontract.actualTotalSupply.call();
           
           assert.equal( Number(totalSupply), Number(actualTotalSupply, 'Loan increased from '+totalSupply+' to '+actualTotalSupply+' after loan was repaid') );
-          assert.equal( Number(newtotalSupply), Number(newactualTotalSupply, 'New Loan increased from '+newtotalSupply+' to '+newactualTotalSupply+' after loan was repaid') );        
+          assert.equal( Number(newtotalSupply), Number(newactualTotalSupply, 'New Loan increased from '+newtotalSupply+' to '+newactualTotalSupply+' after loan was repaid') );
+          done();
         })
         
     })
