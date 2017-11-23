@@ -1,0 +1,31 @@
+{
+  "name": "debt-smart-contract",
+  "version": "0.0.1",
+  "description": "ChronoLogic Debt Smart Contracts",
+  "main": "truffle.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chronologic/debt-smart-contract.git"
+  },
+  "keywords": [
+    "chronologic",
+    "debt",
+    "smart-contract",
+    "ethereum"
+  ],
+  "author": "Chronologic",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/chronologic/debt-smart-contract/issues"
+  },
+  "homepage": "https://github.com/chronologic/debt-smart-contract#readme",
+  "dependencies": {
+    "package-name": "^0.1.0"
+  }
+}

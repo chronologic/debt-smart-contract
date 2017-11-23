@@ -27,10 +27,8 @@ contract DebtToken is ERC20Basic,MintableToken{
   uint256 public lastinterestCycle; //Keep record of Initial value of Loan
   address public debtOwner; //The address from which the loan will be funded, and to which the refund will be directed
   uint256 public constant divisor = 100;
-  
-  // TODO Implement _decimalUnits;
-  
-  
+
+
   function DebtToken(string _tokenName,
       string _tokenSymbol,
       uint256 _initialAmount,
@@ -43,8 +41,8 @@ contract DebtToken is ERC20Basic,MintableToken{
       address _debtOwner
       ) {
       exchangeRate = _exchangeRate;                           // Exchange rate for the coins
-      balances[msg.sender] = _initialAmount*exchangeRate;     // Give the creator all initial tokens
-      initialSupply = _initialAmount*exchangeRate;            // Update initial supply
+      balances[msg.sender] = _initialAmount.mul(exchangeRate);     // Give the creator all initial tokens
+      initialSupply = _initialAmount.mul(exchangeRate);            // Update initial supply
       totalSupply = initialSupply;                           //Update total supply
       name = _tokenName;                                   // Set the name for display purposes
       decimals = _decimalUnits;                             // Amount of decimals for display purposes
@@ -62,7 +60,7 @@ contract DebtToken is ERC20Basic,MintableToken{
     uint256 coins;
     uint256 cycle;
     (coins,cycle) = calculateInterestDue();
-    return totalSupply+coins;
+    return totalSupply.add(coins);
   }
 
   /**
@@ -71,16 +69,18 @@ contract DebtToken is ERC20Basic,MintableToken{
   function getLoanValue(bool initial) public constant returns(uint){
     //TODO get a more dynamic way to calculate
     if(initial == true)
-      return initialSupply*exchangeRate;
-    else
-      return (actualTotalSupply() - balances[owner])*exchangeRate;
+      return initialSupply.mul(exchangeRate);
+    else{
+      uint totalTokens = actualTotalSupply().sub(balances[owner]);
+      return totalTokens.mul(exchangeRate);
+    }
   }
 
   /**
   Fetch total coins gained from interest
   */
   function getInterest() public constant returns (uint){
-    return actualTotalSupply() - initialSupply;
+    return actualTotalSupply().sub(initialSupply);
   }
 
   /**
@@ -97,7 +97,7 @@ contract DebtToken is ERC20Basic,MintableToken{
     if(loanActivation == 0)
       return false;
     else
-      return now >= ( loanActivation + (dayLength*loanTerm) );
+      return now >= loanActivation.add( dayLength.mul(loanTerm) );
   }
 
   /**
@@ -107,7 +107,7 @@ contract DebtToken is ERC20Basic,MintableToken{
     if(!loanMature())
       return true;
     else
-      return !( now >= (lastinterestCycle+(interestCycleLength*dayLength)) );
+      return !( now >= lastinterestCycle.add( interestCycleLength.mul(dayLength) ) );
   }
 
   /**
@@ -121,11 +121,12 @@ contract DebtToken is ERC20Basic,MintableToken{
     if(!loanMature())
       return (0,0);
     else{
-      _cycle = (now - lastinterestCycle) / (dayLength*interestCycleLength);
-      _coins = (_cycle * (interestRate*initialSupply) )/divisor;//Delayed division to avoid too early floor
+      uint timeDiff = now.sub(lastinterestCycle);
+      _cycle = timeDiff.div(dayLength.mul(interestCycleLength) );
+      _coins = _cycle.mul( interestRate.mul(initialSupply) ).div(divisor);//Delayed division to avoid too early floor
     }
   }
-  
+
   /**
   Update the interest of the contract
   */
@@ -135,8 +136,8 @@ contract DebtToken is ERC20Basic,MintableToken{
     uint256 interest_cycle;
     (interest_coins,interest_cycle) = calculateInterestDue();
     assert(interest_coins > 0 && interest_cycle > 0);
-    totalInterestCycle += interest_cycle;
-    lastinterestCycle += (interest_cycle*interestCycleLength*dayLength);
+    totalInterestCycle =  totalInterestCycle.add(interest_cycle);
+    lastinterestCycle = lastinterestCycle.add( interest_cycle.mul( interestCycleLength.mul(dayLength) ) );
     super.mint(debtOwner , interest_coins);
   }
 
@@ -151,10 +152,10 @@ contract DebtToken is ERC20Basic,MintableToken{
     require(msg.value == weiValue);
     require( balances[msg.sender] == 0); //Avoid double payment
 
-    balances[owner] -= totalSupply;
-    balances[msg.sender] += totalSupply;
+    balances[owner] = balances[owner].sub(totalSupply);
+    balances[msg.sender] = balances[msg.sender].add(totalSupply);
     loanActivation = now;  //store the time loan was activated
-    lastinterestCycle = now+ (dayLength*loanTerm) ; //store the date interest matures
+    lastinterestCycle = now.add(dayLength.mul(loanTerm) ) ; //store the date interest matures
     owner.transfer(msg.value);
     mintingFinished = false;                 //Enable minting
     Transfer(owner,msg.sender,totalSupply);//Allow funding be tracked
@@ -163,17 +164,18 @@ contract DebtToken is ERC20Basic,MintableToken{
   /**
   Make payment to refund loan
   */
-  function refundLoan() public payable{
+  function refundLoan() onlyOwner public payable{
     if(! interestStatusUpdated() )
         updateInterest(); //Ensure Interest is updated
+
     require(msg.value > 0);
     require(msg.value == getLoanValue(false));
 
     require(balances[debtOwner] > 0);
     super.finishMinting() ;//Prevent further Minting
 
-    balances[debtOwner] -= totalSupply;
-    balances[owner] += totalSupply;
+    balances[debtOwner] = balances[debtOwner].sub(totalSupply);
+    balances[owner] = balances[owner].add(totalSupply);
     debtOwner.transfer(msg.value);
     Transfer(debtOwner,owner,totalSupply);//Allow funding be tracked
   }
