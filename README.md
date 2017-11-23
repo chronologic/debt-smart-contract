@@ -32,7 +32,9 @@
   * _interestRate: 2
   * _debtOwner: address  
 
-
+#### Ropsten Test deployment
+  Most recent version of the code is deployed at:
+  https://ropsten.etherscan.io/token/0x85363bc863a9a5054476628a1c79fec9f23730bc
 
 ### Tests
   * Test actual functionality of debt-smart-contract
