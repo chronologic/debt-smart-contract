@@ -34,7 +34,8 @@
 
 #### Ropsten Test deployment
   Most recent version of the code is deployed at:
-  https://ropsten.etherscan.io/token/0x85363bc863a9a5054476628a1c79fec9f23730bc
+  https://ropsten.etherscan.io/token/0x4dd86d50fa0ce7b25274406b985e509ed599d76b
+  https://ropsten.etherscan.io/address/0x4dd86d50fa0ce7b25274406b985e509ed599d76b
 
 ### Tests
   * Test actual functionality of debt-smart-contract
