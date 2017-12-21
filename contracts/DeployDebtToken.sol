@@ -1,6 +1,5 @@
 pragma solidity ^0.4.15;
 import './DebtToken.sol';
-
 contract DeployDebtToken is Ownable{
 
     address public owner;
@@ -9,7 +8,7 @@ contract DeployDebtToken is Ownable{
     ERC20 dayToken;
 
     event FeeUpdated(uint _fee, uint _time);
-    event DebtTokenCreated(address _creator, address _debtTokenAddress, uint _time);
+    event DebtTokenCreated(address Indexed _creator, address _debtTokenAddress, uint _time);
 
     function DeployDebtToken(address _dayTokenAddress, uint _dayTokenFees){
             dayTokenAddress = _dayTokenAddress;
