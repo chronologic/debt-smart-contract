@@ -1,5 +1,5 @@
-pragma solidity ^0.4.15;
 import './DebtToken.sol';
+pragma solidity ^0.4.15;
 contract DeployDebtToken is Ownable{
 
     address public owner;
@@ -8,12 +8,12 @@ contract DeployDebtToken is Ownable{
     ERC20 dayToken;
 
     event FeeUpdated(uint _fee, uint _time);
-    event DebtTokenCreated(address Indexed _creator, address _debtTokenAddress, uint _time);
+    event DebtTokenCreated(address  _creator, address _debtTokenAddress, uint256 _time);
 
     function DeployDebtToken(address _dayTokenAddress, uint _dayTokenFees){
-            dayTokenAddress = _dayTokenAddress;
-            dayTokenFees = _dayTokenFees;
-            owner = msg.sender;
+        dayTokenAddress = _dayTokenAddress;
+        dayTokenFees = _dayTokenFees;
+        owner = msg.sender;
         dayToken = ERC20(dayTokenAddress);
     }
 
@@ -36,12 +36,11 @@ contract DeployDebtToken is Ownable{
         address user = msg.sender;
 
         if(dayToken.transferFrom(user, this, dayTokenFees)){
-            DebtToken newDebtToken = new DebtToken(_tokenName, _tokenSymbol, _initialAmount, _exchangeRatr,
-                                                    _decimalUnits, _dayLength, _loanTerm, _loanCycle,
-                                                    _interestRate, _debtOwner);
-            DeployDebtToken(user, newDebtToken, now);
+            DebtToken newDebtToken = new DebtToken(_tokenName, _tokenSymbol, _initialAmount, _exchangeRate,
+                _decimalUnits, _dayLength, _loanTerm, _loanCycle,
+                _interestRate, _debtOwner);
+            DebtTokenCreated(user, address(newDebtToken), now);
         }
-
 
     }
 
