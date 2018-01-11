@@ -25,8 +25,6 @@ contract DebtToken is ERC20Basic, MintableToken {
   uint256 public totalInterestCycle; //Total number of interest cycles completed
   uint256 public lastinterestCycle; //Keep record of Initial value of Loan
   address public debtOwner; //The address from which the loan will be funded, and to which the refund will be directed
-  uint256 public constant divisor = 100;
-
 
   function DebtToken(
       string _tokenName,
@@ -123,7 +121,7 @@ contract DebtToken is ERC20Basic, MintableToken {
     else{
       uint timeDiff = now.sub(lastinterestCycle);
       _cycle = timeDiff.div(interestCycleLength.mul(1 days));
-      _coins = _cycle.mul( interestRate.mul(initialSupply) ).div(divisor);//Delayed division to avoid too early floor
+      _coins = _cycle.mul( interestRate.mul(initialSupply) ).div(100);//Delayed division to avoid too early floor
     }
   }
 
