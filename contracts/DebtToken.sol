@@ -21,7 +21,7 @@ contract DebtToken is ERC20Basic, MintableToken {
   uint256 public initialSupply; //Keep record of Initial value of Loan
   uint256 public loanActivation; //Timestamp the loan was funded
   uint256 public interestRate; //Interest rate per interest cycle
-  uint256 public interestCycleLength = 30; //Total number of days per interest cycle
+  uint256 public interestCycleLength; //Total number of days per interest cycle
   uint256 public totalInterestCycle; //Total number of interest cycles completed
   uint256 public lastinterestCycle; //Keep record of Initial value of Loan
   address public debtOwner; //The address from which the loan will be funded, and to which the refund will be directed
