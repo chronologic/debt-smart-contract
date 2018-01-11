@@ -160,10 +160,8 @@ contract('DebtToken', function(accounts){
         })
 
         it('Should fail to allow owner run finishMinting function',function(done){
-            contract.finishMinting({from:Me},function(e,r){
-              assert.notEqual(e,null,'Owner successfuly prevented minting without refunding Loan');
-              done();
-            });
+          assert.isNotOk(contract.finishMinting, "finishMiting shall be available internally only");
+          done();
         })
 
     })
