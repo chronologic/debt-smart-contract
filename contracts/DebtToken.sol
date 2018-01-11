@@ -1,10 +1,10 @@
-import 'zeppelin/token/ERC20Basic.sol';
-import 'zeppelin/token/MintableToken.sol';
+import 'zeppelin/ownership/Ownable.sol';
+import 'zeppelin/math/SafeMath.sol';
 
 pragma solidity ^0.4.15;
 
-contract DebtToken is ERC20Basic,MintableToken{
-  
+contract DebtToken is Ownable {
+  using SafeMath for uint256;
   /**
   Recognition data
   */
@@ -27,8 +27,7 @@ contract DebtToken is ERC20Basic,MintableToken{
   uint256 public lastinterestCycle; //Keep record of Initial value of Loan
   address public debtOwner; //The address from which the loan will be funded, and to which the refund will be directed
   uint256 public constant divisor = 100;
-
-
+  
   function DebtToken(string _tokenName,
       string _tokenSymbol,
       uint256 _initialAmount,
@@ -52,10 +51,63 @@ contract DebtToken is ERC20Basic,MintableToken{
       interestCycleLength = _loanCycle;                   //set the Interest cycle period
       interestRate = _interestRate;                      //Set the Interest rate per cycle
       debtOwner = _debtOwner;                             //set Debt owner
-      mintingFinished = true;                             //Disable minting
+
       Transfer(0,msg.sender,totalSupply);//Allow funding be tracked
   }
 
+  /** 
+  Partial ERC20 functionality
+   */
+  uint256 public totalSupply;
+  mapping(address => uint256) balances;
+
+  event Transfer(address indexed from, address indexed to, uint256 value);
+
+  function balanceOf(address _owner) public constant returns (uint256 balance) {
+    return balances[_owner];
+  }
+
+  /**
+  MintableToken functionality
+   */
+  event Mint(address indexed to, uint256 amount);
+  event MintFinished();
+
+  bool public mintingFinished = true;
+
+
+  modifier canMint() {
+    require(!mintingFinished);
+    _;
+  }
+
+  /**
+   * @dev Function to mint tokens
+   * @param _to The address that will receive the minted tokens.
+   * @param _amount The amount of tokens to mint.
+   * @return A boolean that indicates if the operation was successful.
+   */
+  function mint(address _to, uint256 _amount) canMint private returns (bool) {
+    totalSupply = totalSupply.add(_amount);
+    balances[_to] = balances[_to].add(_amount);
+    Mint(_to, _amount);
+    Transfer(0x0, _to, _amount);
+    return true;
+  }
+
+  /**
+   * @dev Function to stop minting new tokens.
+   * @return True if the operation was successful.
+   */
+  function finishMinting() onlyOwner private returns (bool) {
+    mintingFinished = true;
+    MintFinished();
+    return true;
+  }
+
+  /**
+  Debt token functionality
+   */
   function actualTotalSupply() public constant returns(uint) {
     uint256 coins;
     uint256 cycle;
@@ -140,7 +192,7 @@ contract DebtToken is ERC20Basic,MintableToken{
     assert(interest_coins > 0 && interest_cycle > 0);
     totalInterestCycle =  totalInterestCycle.add(interest_cycle);
     lastinterestCycle = lastinterestCycle.add( interest_cycle.mul( interestCycleLength.mul(dayLength) ) );
-    super.mint(debtOwner , interest_coins);
+    mint(debtOwner , interest_coins);
   }
 
   /**
@@ -174,7 +226,7 @@ contract DebtToken is ERC20Basic,MintableToken{
     require(msg.value == getLoanValue(false));
 
     require(balances[debtOwner] > 0);
-    super.finishMinting() ;//Prevent further Minting
+    finishMinting() ;//Prevent further Minting
 
     balances[debtOwner] = balances[debtOwner].sub(totalSupply);
     balances[owner] = balances[owner].add(totalSupply);
@@ -199,33 +251,4 @@ contract DebtToken is ERC20Basic,MintableToken{
   function transferOwnership(address newOwner) onlyOwner public {
     revert();  //Disable the transferOwnership feature: Loan non-transferrable
   }
-
-  function transfer(address to, uint256 value) public returns (bool){
-    revert();  //Disable the transfer feature: Loan non-transferrable
-  }
-
-  function transferFrom(address _from, address _to, uint256 _value) public returns (bool) {
-    revert();  //Disable the transferFrom feature: Loan non-transferrable
-  }
-
-  function approve(address _spender, uint256 _value) public returns (bool) {
-    revert();  //Disable the approve feature: Loan non-transferrable
-  }
-
-  function allowance(address _owner, address _spender) public constant returns (uint256) {
-    revert();  //Disable the allowance feature: Loan non-transferrable
-  }
-
-  function increaseApproval (address _spender, uint _addedValue) public returns (bool) {
-    revert();  //Disable the increaseApproval feature: Loan non-transferrable
-  }
-
-  function decreaseApproval (address _spender, uint _subtractedValue) public returns (bool) {
-    revert();  //Disable the decreaseApproval feature: Loan non-transferrable
-  }
-
-  function finishMinting() onlyOwner public returns (bool) {
-    revert();  //Disable the external control of finishMinting
-  }
-
 }
