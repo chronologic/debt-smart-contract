@@ -16,8 +16,7 @@ contract DebtToken is ERC20Basic, MintableToken {
   Actual logic data
   */
   uint256 public decimals;
-  uint256 public dayLength = 86400;//Number of seconds in a day
-  uint256 public loanTerm;//Loan term in days
+  uint256 public requiredMaturityPeriod; //Loan term in days
   uint256 public exchangeRate; //Exchange rate for Ether to loan coins
   uint256 public initialSupply; //Keep record of Initial value of Loan
   uint256 public loanActivation; //Timestamp the loan was funded
@@ -47,7 +46,7 @@ contract DebtToken is ERC20Basic, MintableToken {
       name = _tokenName;                                   // Set the name for display purposes
       decimals = _decimalUnits;                             // Amount of decimals for display purposes
       symbol = _tokenSymbol;                              // Set the symbol for display purposes
-      loanTerm = _loanTerm;                               //Set the number of days, for loan maturity
+      requiredMaturityPeriod = _loanTerm;                               //Set the number of days, for loan maturity
       interestCycleLength = _loanCycle;                   //set the Interest cycle period
       interestRate = _interestRate;                      //Set the Interest rate per cycle
       debtOwner = _debtOwner;                             //set Debt owner
@@ -96,7 +95,7 @@ contract DebtToken is ERC20Basic, MintableToken {
     if(loanActivation == 0)
       return false;
     else
-      return now >= loanActivation.add( dayLength.mul(loanTerm) );
+      return now >= loanActivation.add(requiredMaturityPeriod.mul(1 days));
   }
 
   /**
@@ -106,7 +105,7 @@ contract DebtToken is ERC20Basic, MintableToken {
     if(!loanMature())
       return true;
     else
-      return !( now >= lastinterestCycle.add( interestCycleLength.mul(dayLength) ) );
+      return !(now >= lastinterestCycle.add(interestCycleLength.mul(1 days)));
   }
 
   /**
@@ -123,7 +122,7 @@ contract DebtToken is ERC20Basic, MintableToken {
       return (0,0);
     else{
       uint timeDiff = now.sub(lastinterestCycle);
-      _cycle = timeDiff.div(dayLength.mul(interestCycleLength) );
+      _cycle = timeDiff.div(interestCycleLength.mul(1 days));
       _coins = _cycle.mul( interestRate.mul(initialSupply) ).div(divisor);//Delayed division to avoid too early floor
     }
   }
@@ -138,7 +137,7 @@ contract DebtToken is ERC20Basic, MintableToken {
     (interest_coins,interest_cycle) = calculateInterestDue();
     assert(interest_coins > 0 && interest_cycle > 0);
     totalInterestCycle =  totalInterestCycle.add(interest_cycle);
-    lastinterestCycle = lastinterestCycle.add( interest_cycle.mul( interestCycleLength.mul(dayLength) ) );
+    lastinterestCycle = lastinterestCycle.add( interest_cycle.mul( interestCycleLength.mul(1 days) ) );
     super.mint(debtOwner , interest_coins);
   }
 
@@ -156,7 +155,7 @@ contract DebtToken is ERC20Basic, MintableToken {
     balances[owner] = balances[owner].sub(totalSupply);
     balances[msg.sender] = balances[msg.sender].add(totalSupply);
     loanActivation = now;  //store the time loan was activated
-    lastinterestCycle = now.add(dayLength.mul(loanTerm) ) ; //store the date interest matures
+    lastinterestCycle = now.add(requiredMaturityPeriod.mul(1 days)) ; //store the date interest matures
     owner.transfer(msg.value);
     mintingFinished = false;                 //Enable minting
     Transfer(owner,msg.sender,totalSupply);//Allow funding be tracked
