@@ -3,7 +3,7 @@ import 'zeppelin/token/MintableToken.sol';
 
 pragma solidity ^0.4.15;
 
-contract DebtToken is ERC20Basic,MintableToken{
+contract DebtToken is ERC20Basic, MintableToken {
   
   /**
   Recognition data
@@ -29,12 +29,12 @@ contract DebtToken is ERC20Basic,MintableToken{
   uint256 public constant divisor = 100;
 
 
-  function DebtToken(string _tokenName,
+  function DebtToken(
+      string _tokenName,
       string _tokenSymbol,
       uint256 _initialAmount,
       uint256 _exchangeRate,
       uint256 _decimalUnits,
-      uint256 _dayLength,
       uint256 _loanTerm,
       uint256 _loanCycle,
       uint256 _interestRate,
@@ -47,7 +47,6 @@ contract DebtToken is ERC20Basic,MintableToken{
       name = _tokenName;                                   // Set the name for display purposes
       decimals = _decimalUnits;                             // Amount of decimals for display purposes
       symbol = _tokenSymbol;                              // Set the symbol for display purposes
-      dayLength = _dayLength;                             //Set the length of each day in seconds...For dev purposes
       loanTerm = _loanTerm;                               //Set the number of days, for loan maturity
       interestCycleLength = _loanCycle;                   //set the Interest cycle period
       interestRate = _interestRate;                      //Set the Interest rate per cycle
