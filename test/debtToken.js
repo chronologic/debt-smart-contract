@@ -9,12 +9,11 @@ contract('DebtToken', function(accounts){
     var deployment_config = {
       _tokenName:  'Performance Global Loan',
       _tokenSymbol:  'PGLOAN',
-      _initialAmount: 500000000000000000,
+      _initialAmount: 50000000000000000,
       //_initialAmount: 500000000000000000000,//wei value of initial loan
       _exchangeRate:   1,
       _decimalUnits:   18,
-      //_dayLength:  86400,
-      _dayLength:  10,
+      _dayLength: 24 * 60 * 60,
       _loanTerm:   60,
       _loanCycle: 20,
       _interestRate: 2,
@@ -27,19 +26,22 @@ contract('DebtToken', function(accounts){
       web3.currentProvider.send({jsonrpc: "2.0", method: "evm_mine", params: [], id: 0})
     }
 
+    function deployNewDebtContract() {
+      return DebtToken.new(
+        deployment_config._tokenName,
+        deployment_config._tokenSymbol,
+        deployment_config._initialAmount,
+        deployment_config._exchangeRate,
+        deployment_config._decimalUnits,
+        deployment_config._loanTerm,
+        deployment_config._loanCycle,
+        deployment_config._interestRate,
+        deployment_config._debtOwner
+      )
+    }
+
     it('should deploy the contract', function (done) {
-        DebtToken.new(
-            deployment_config._tokenName,
-            deployment_config._tokenSymbol,
-            deployment_config._initialAmount,
-            deployment_config._exchangeRate,
-            deployment_config._decimalUnits,
-            deployment_config._dayLength,
-            deployment_config._loanTerm,
-            deployment_config._loanCycle,
-            deployment_config._interestRate,
-            deployment_config._debtOwner
-        )
+      deployNewDebtContract()
         .then(function(inst){
             contract = inst.contract;
             web3 = inst.constructor.web3;
@@ -203,18 +205,7 @@ contract('DebtToken', function(accounts){
 
         it('Should successfully refund before contract maturation',function(done){
 
-          DebtToken.new(
-              deployment_config._tokenName,
-              deployment_config._tokenSymbol,
-              deployment_config._initialAmount,
-              deployment_config._exchangeRate,
-              deployment_config._decimalUnits,
-              deployment_config._dayLength,
-              deployment_config._loanTerm,
-              deployment_config._loanCycle,
-              deployment_config._interestRate,
-              deployment_config._debtOwner
-          )
+          deployNewDebtContract()
           .then(function(inst){
               newcontract = inst.contract;
               assert.notEqual(contract.address, null, 'Contract not successfully deployed');
