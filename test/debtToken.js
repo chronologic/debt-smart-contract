@@ -9,15 +9,15 @@ contract('DebtToken', function(accounts){
     var deployment_config = {
       _tokenName:  'Performance Global Loan',
       _tokenSymbol:  'PGLOAN',
-      _initialAmount: 500000000000000000,
+      _initialAmount: 0.5*_1ether,
       //_initialAmount: 500000000000000000000,//wei value of initial loan
       _exchangeRate:   1,
       _decimalUnits:   18,
       //_dayLength:  86400,
       _dayLength:  10,
-      _loanTerm:   60,
+      _gracePeriod:   60,
       _loanCycle: 20,
-      _interestRate: 2,
+      _interestRatePerCycle: 2,
       _lender: accounts[1]
     },
     unit = Math.pow(10,deployment_config._decimalUnits);
@@ -35,9 +35,9 @@ contract('DebtToken', function(accounts){
             deployment_config._exchangeRate,
             deployment_config._decimalUnits,
             deployment_config._dayLength,
-            deployment_config._loanTerm,
+            deployment_config._gracePeriod,
             deployment_config._loanCycle,
-            deployment_config._interestRate,
+            deployment_config._interestRatePerCycle,
             deployment_config._lender
         )
         .then(function(inst){
@@ -123,10 +123,10 @@ contract('DebtToken', function(accounts){
           }
 
           //Update EVM time to required time
-          var time = deployment_config._loanTerm*deployment_config._dayLength*1000;
+          var time = deployment_config._gracePeriod*deployment_config._dayLength*1000;
           forceMine(time);
 
-          assert.equal(contract.loanMature.call(),true,'Loan not mature in due time ( '+web3.eth.getBlock('latest').timestamp+' )');
+          assert.equal(contract.hasGracePeriodOver.call(),true,'Loan grace period has not over ( '+web3.eth.getBlock('latest').timestamp+' )');
           doUpdate();
         })
 
@@ -208,9 +208,9 @@ contract('DebtToken', function(accounts){
               deployment_config._exchangeRate,
               deployment_config._decimalUnits,
               deployment_config._dayLength,
-              deployment_config._loanTerm,
+              deployment_config._gracePeriod,
               deployment_config._loanCycle,
-              deployment_config._interestRate,
+              deployment_config._interestRatePerCycle,
               deployment_config._lender
           )
           .then(function(inst){
@@ -236,7 +236,7 @@ contract('DebtToken', function(accounts){
                       var _value = newcontract.getLoanValue.call(false),//fetch the initial loan value
                       _lender = newcontract.lender.call(),
                       _lenderBalance = web3.eth.getBalance(_lender);
-                      console.log('Loan Maturity:', newcontract.loanMature.call() );
+                      console.log('Loan grace period:', newcontract.hasGracePeriodOver.call() );
 
                       web3.eth.sendTransaction({from:Me,to:newcontract.address,value:_value},function(e,r){
 

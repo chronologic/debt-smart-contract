@@ -11,45 +11,52 @@ contract DebtToken is Ownable {
   string public name;
   string public symbol;
   string public version = 'DT0.1';
+  uint256 public decimals;
   
   /**
   Actual logic data
   */
-  uint256 public decimals;
   uint256 public dayLength = 86400;//Number of seconds in a day
-  uint256 public loanTerm;//Loan term in days
+  uint256 public gracePeriod;//Loan term in days
   uint256 public exchangeRate; //Exchange rate for Ether to loan coins
   uint256 public initialSupply; //Keep record of Initial value of Loan
   uint256 public loanActivation; //Timestamp the loan was funded
-  uint256 public interestRate; //Interest rate per interest cycle
-  uint256 public interestCycleLength = 30; //Total number of days per interest cycle
-  uint256 public totalInterestCycle; //Total number of interest cycles completed
-  uint256 public lastinterestCycle; //Keep record of Initial value of Loan
-  address public lender; //The address from which the loan will be funded, and to which the refund will be directed
-  uint256 public constant divisor = 100;
   
-  function DebtToken(string _tokenName,
+  uint256 public interestRatePerCycle; //Interest rate per interest cycle
+  uint256 public interestCycleLength = 30; //Total number of days per interest cycle
+  
+  uint256 public totalInterestCycles; //Total number of interest cycles completed
+  uint256 public lastInterestCycle; //Keep record of Initial value of Loan
+  
+  address public lender; //The address from which the loan will be funded, and to which the refund will be directed
+  
+  uint256 public constant PERCENT_DIVISOR = 100;
+  
+  function DebtToken(
+      string _tokenName,
       string _tokenSymbol,
       uint256 _initialAmount,
       uint256 _exchangeRate,
       uint256 _decimalUnits,
       uint256 _dayLength,
-      uint256 _loanTerm,
+      uint256 _gracePeriod,
       uint256 _loanCycle,
-      uint256 _interestRate,
+      uint256 _interestRatePerCycle,
       address _lender
       ) {
       exchangeRate = _exchangeRate;                           // Exchange rate for the coins
-      balances[msg.sender] = _initialAmount.mul(exchangeRate);     // Give the creator all initial tokens
       initialSupply = _initialAmount.mul(exchangeRate);            // Update initial supply
       totalSupply = initialSupply;                           //Update total supply
+      balances[msg.sender] = initialSupply;                 // Give the creator all initial tokens
+      
       name = _tokenName;                                   // Set the name for display purposes
       decimals = _decimalUnits;                             // Amount of decimals for display purposes
       symbol = _tokenSymbol;                              // Set the symbol for display purposes
+      
       dayLength = _dayLength;                             //Set the length of each day in seconds...For dev purposes
-      loanTerm = _loanTerm;                               //Set the number of days, for loan maturity
+      gracePeriod = _gracePeriod;                               //Set the number of days, for loan maturity
       interestCycleLength = _loanCycle;                   //set the Interest cycle period
-      interestRate = _interestRate;                      //Set the Interest rate per cycle
+      interestRatePerCycle = _interestRatePerCycle;                      //Set the Interest rate per cycle
       lender = _lender;                             //set lender address
 
       Transfer(0,msg.sender,totalSupply);//Allow funding be tracked
@@ -145,21 +152,21 @@ contract DebtToken is Ownable {
   /**
   Check if the loan is mature for interest
   */
-  function loanMature() public constant returns (bool){
+  function hasGracePeriodOver() public constant returns (bool){
     if(loanActivation == 0)
       return false;
     else
-      return now >= loanActivation.add( dayLength.mul(loanTerm) );
+      return now >= loanActivation.add( dayLength.mul(gracePeriod) );
   }
 
   /**
   Check if updateInterest() needs to be called before refundLoan()
   */
   function interestStatusUpdated() public constant returns(bool){
-    if(!loanMature())
+    if(!hasGracePeriodOver())
       return true;
     else
-      return !( now >= lastinterestCycle.add( interestCycleLength.mul(dayLength) ) );
+      return !( now >= lastInterestCycle.add( interestCycleLength.mul(dayLength) ) );
   }
 
   /**
@@ -170,14 +177,14 @@ contract DebtToken is Ownable {
   calculate the total number of passed interest cycles and coin value
   */
   function calculateInterestDue() public constant returns(uint256 _coins,uint256 _cycle){
-    if(!loanMature())
+    if(!hasGracePeriodOver())
       return (0,0);
     else if(balances[lender] == 0)
       return (0,0);
     else{
-      uint timeDiff = now.sub(lastinterestCycle);
+      uint timeDiff = now.sub(lastInterestCycle);
       _cycle = timeDiff.div(dayLength.mul(interestCycleLength) );
-      _coins = _cycle.mul( interestRate.mul(initialSupply) ).div(divisor);//Delayed division to avoid too early floor
+      _coins = _cycle.mul( interestRatePerCycle.mul(initialSupply) ).div(PERCENT_DIVISOR);//Delayed division to avoid too early floor
     }
   }
 
@@ -185,13 +192,13 @@ contract DebtToken is Ownable {
   Update the interest of the contract
   */
   function updateInterest() public {
-    require( loanMature() );
+    require( hasGracePeriodOver() );
     uint interest_coins;
     uint256 interest_cycle;
     (interest_coins,interest_cycle) = calculateInterestDue();
     assert(interest_coins > 0 && interest_cycle > 0);
-    totalInterestCycle =  totalInterestCycle.add(interest_cycle);
-    lastinterestCycle = lastinterestCycle.add( interest_cycle.mul( interestCycleLength.mul(dayLength) ) );
+    totalInterestCycles =  totalInterestCycles.add(interest_cycle);
+    lastInterestCycle = lastInterestCycle.add( interest_cycle.mul( interestCycleLength.mul(dayLength) ) );
     mint(lender , interest_coins);
   }
 
@@ -209,7 +216,7 @@ contract DebtToken is Ownable {
     balances[owner] = balances[owner].sub(totalSupply);
     balances[msg.sender] = balances[msg.sender].add(totalSupply);
     loanActivation = now;  //store the time loan was activated
-    lastinterestCycle = now.add(dayLength.mul(loanTerm) ) ; //store the date interest matures
+    lastInterestCycle = now.add(dayLength.mul(gracePeriod) ) ; //store the date interest matures
     owner.transfer(msg.value);
     mintingFinished = false;                 //Enable minting
     Transfer(owner,msg.sender,totalSupply);//Allow funding be tracked

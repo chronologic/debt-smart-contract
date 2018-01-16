@@ -30,17 +30,17 @@ contract DeployDebtToken is Ownable{
         uint256 _exchangeRate,
         uint256 _decimalUnits,
         uint256 _dayLength,
-        uint256 _loanTerm,
+        uint256 _gracePeriod,
         uint256 _loanCycle,
-        uint256 _interestRate,
+        uint256 _intrestRatePerCycle,
         address _lender){
 
         address user = msg.sender;
 
         if(dayToken.transferFrom(user, this, dayTokenFees)){
             DebtToken newDebtToken = new DebtToken(_tokenName, _tokenSymbol, _initialAmount, _exchangeRate,
-                _decimalUnits, _dayLength, _loanTerm, _loanCycle,
-                _interestRate, _lender);
+                _decimalUnits, _dayLength, _gracePeriod, _loanCycle,
+                _intrestRatePerCycle, _lender);
             DebtTokenCreated(user, address(newDebtToken), now);
         }
 
