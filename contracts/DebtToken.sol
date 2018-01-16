@@ -25,7 +25,7 @@ contract DebtToken is Ownable {
   uint256 public interestCycleLength = 30; //Total number of days per interest cycle
   uint256 public totalInterestCycle; //Total number of interest cycles completed
   uint256 public lastinterestCycle; //Keep record of Initial value of Loan
-  address public debtOwner; //The address from which the loan will be funded, and to which the refund will be directed
+  address public lender; //The address from which the loan will be funded, and to which the refund will be directed
   uint256 public constant divisor = 100;
   
   function DebtToken(string _tokenName,
@@ -37,7 +37,7 @@ contract DebtToken is Ownable {
       uint256 _loanTerm,
       uint256 _loanCycle,
       uint256 _interestRate,
-      address _debtOwner
+      address _lender
       ) {
       exchangeRate = _exchangeRate;                           // Exchange rate for the coins
       balances[msg.sender] = _initialAmount.mul(exchangeRate);     // Give the creator all initial tokens
@@ -50,7 +50,7 @@ contract DebtToken is Ownable {
       loanTerm = _loanTerm;                               //Set the number of days, for loan maturity
       interestCycleLength = _loanCycle;                   //set the Interest cycle period
       interestRate = _interestRate;                      //Set the Interest rate per cycle
-      debtOwner = _debtOwner;                             //set Debt owner
+      lender = _lender;                             //set lender address
 
       Transfer(0,msg.sender,totalSupply);//Allow funding be tracked
   }
@@ -136,10 +136,10 @@ contract DebtToken is Ownable {
   }
 
   /**
-  Check that an address is the owner of the debt or the loan contract partner
+  Check that an address is the lender
   */
-  function isDebtOwner(address addr) public constant returns(bool){
-    return (addr == debtOwner);
+  function isLender(address addr) public constant returns(bool){
+    return (addr == lender);
   }
 
   /**
@@ -172,7 +172,7 @@ contract DebtToken is Ownable {
   function calculateInterestDue() public constant returns(uint256 _coins,uint256 _cycle){
     if(!loanMature())
       return (0,0);
-    else if(balances[debtOwner] == 0)
+    else if(balances[lender] == 0)
       return (0,0);
     else{
       uint timeDiff = now.sub(lastinterestCycle);
@@ -192,14 +192,14 @@ contract DebtToken is Ownable {
     assert(interest_coins > 0 && interest_cycle > 0);
     totalInterestCycle =  totalInterestCycle.add(interest_cycle);
     lastinterestCycle = lastinterestCycle.add( interest_cycle.mul( interestCycleLength.mul(dayLength) ) );
-    mint(debtOwner , interest_coins);
+    mint(lender , interest_coins);
   }
 
   /**
   Make payment to inititate loan
   */
   function fundLoan() public payable{
-    require(isDebtOwner(msg.sender));
+    require(isLender(msg.sender));
     require(msg.value > 0); //Ensure input available
 
     uint256 weiValue = getLoanValue(true);
@@ -225,13 +225,13 @@ contract DebtToken is Ownable {
     require(msg.value > 0);
     require(msg.value == getLoanValue(false));
 
-    require(balances[debtOwner] > 0);
+    require(balances[lender] > 0);
     finishMinting() ;//Prevent further Minting
 
-    balances[debtOwner] = balances[debtOwner].sub(totalSupply);
+    balances[lender] = balances[lender].sub(totalSupply);
     balances[owner] = balances[owner].add(totalSupply);
-    debtOwner.transfer(msg.value);
-    Transfer(debtOwner,owner,totalSupply);//Allow funding be tracked
+    lender.transfer(msg.value);
+    Transfer(lender,owner,totalSupply);//Allow funding be tracked
   }
 
   /**
@@ -241,7 +241,7 @@ contract DebtToken is Ownable {
     require(initialSupply > 0);//Stop the whole process if initialSupply not set
     if(msg.sender == owner && balances[msg.sender] == 0)
       refundLoan();
-    else if(isDebtOwner(msg.sender) && balances[msg.sender] == 0)
+    else if(isLender(msg.sender) && balances[msg.sender] == 0)
       fundLoan();
     else revert(); //Throw if neither of cases apply, ensure no free money
   }
