@@ -145,8 +145,12 @@ contract DebtToken is Ownable {
   /**
   Check that an address is the lender
   */
-  function isLender(address addr) public constant returns(bool){
-    return (addr == lender);
+  function isLender() private constant returns(bool){
+    return msg.sender == lender;
+  }
+
+  function isLoanNotFunded() public constant returns(bool) {
+    return balances[lender] == 0;
   }
 
   /**
@@ -162,7 +166,7 @@ contract DebtToken is Ownable {
   /**
   Check if updateInterest() needs to be called before refundLoan()
   */
-  function interestStatusUpdated() public constant returns(bool){
+  function isInterestStatusUpdated() public constant returns(bool){
     if(!hasGracePeriodOver())
       return true;
     else
@@ -170,16 +174,10 @@ contract DebtToken is Ownable {
   }
 
   /**
-
-  */
-
-  /**
   calculate the total number of passed interest cycles and coin value
   */
   function calculateInterestDue() public constant returns(uint256 _coins,uint256 _cycle){
-    if(!hasGracePeriodOver())
-      return (0,0);
-    else if(balances[lender] == 0)
+    if(!hasGracePeriodOver() || isLoanNotFunded())
       return (0,0);
     else{
       uint timeDiff = now.sub(lastInterestCycle);
@@ -206,12 +204,9 @@ contract DebtToken is Ownable {
   Make payment to inititate loan
   */
   function fundLoan() public payable{
-    require(isLender(msg.sender));
-    require(msg.value > 0); //Ensure input available
-
-    uint256 weiValue = getLoanValue(true);
-    require(msg.value == weiValue);
-    require( balances[msg.sender] == 0); //Avoid double payment
+    require(isLender());
+    require(msg.value == getLoanValue(true)); //Ensure input available
+    require(isLoanNotFunded()); //Avoid double payment
 
     balances[owner] = balances[owner].sub(totalSupply);
     balances[msg.sender] = balances[msg.sender].add(totalSupply);
@@ -226,7 +221,7 @@ contract DebtToken is Ownable {
   Make payment to refund loan
   */
   function refundLoan() onlyOwner public payable{
-    if(! interestStatusUpdated() )
+    if(! isInterestStatusUpdated() )
         updateInterest(); //Ensure Interest is updated
 
     require(msg.value > 0);
@@ -248,7 +243,7 @@ contract DebtToken is Ownable {
     require(initialSupply > 0);//Stop the whole process if initialSupply not set
     if(msg.sender == owner && balances[msg.sender] == 0)
       refundLoan();
-    else if(isLender(msg.sender) && balances[msg.sender] == 0)
+    else if(isLender() && isLoanNotFunded())
       fundLoan();
     else revert(); //Throw if neither of cases apply, ensure no free money
   }

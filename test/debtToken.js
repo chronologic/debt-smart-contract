@@ -107,10 +107,10 @@ contract('DebtToken', function(accounts){
     })
 
     describe('Interest Accruing ',function(){
-        it('Should fetch interestUpdated satus',function(){
-            var interestStatusUpdated = contract.interestStatusUpdated.call();
+        it('Should fetch isInterestStatusUpdated status',function(){
+            var isInterestStatusUpdated = contract.isInterestStatusUpdated.call();
 
-            assert.notEqual(interestStatusUpdated,null, 'Did not successfully fetch interestStatusUpdated value, instead "'+interestStatusUpdated+'"');
+            assert.notEqual(isInterestStatusUpdated,null, 'Did not successfully fetch isInterestStatusUpdated value, instead "'+isInterestStatusUpdated+'"');
         })
 
         it('Should run updateInterest function from any address',function(done){
