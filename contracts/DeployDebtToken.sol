@@ -1,4 +1,6 @@
 import './DebtToken.sol';
+import 'zeppelin/contracts/token/ERC20.sol';
+
 pragma solidity ^0.4.15;
 contract DeployDebtToken is Ownable{
 
@@ -30,15 +32,15 @@ contract DeployDebtToken is Ownable{
         uint256 _dayLength,
         uint256 _loanTerm,
         uint256 _loanCycle,
-        uint256 _interestRate,
-        address _debtOwner){
+        uint256 _intrestRatePerCycle,
+        address _lender){
 
         address user = msg.sender;
 
         if(dayToken.transferFrom(user, this, dayTokenFees)){
             DebtToken newDebtToken = new DebtToken(_tokenName, _tokenSymbol, _initialAmount, _exchangeRate,
                 _decimalUnits, _dayLength, _loanTerm, _loanCycle,
-                _interestRate, _debtOwner);
+                _intrestRatePerCycle, _lender);
             DebtTokenCreated(user, address(newDebtToken), now);
         }
 
