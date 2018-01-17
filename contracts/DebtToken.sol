@@ -184,7 +184,7 @@ contract DebtToken is Ownable {
   calculate the total number of passed interest cycles and coin value
   */
   function calculateInterestDue() public constant returns(uint256 _coins,uint256 _cycle){
-    if(!isTermOver() || !isLoanFunded())
+    if(!isTermOver())
       return (0,0);
     else{
       uint timeDiff = now.sub(lastInterestCycle);
