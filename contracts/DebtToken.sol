@@ -128,10 +128,10 @@ contract DebtToken is Ownable {
   function getLoanValue(bool initial) public constant returns(uint){
     //TODO get a more dynamic way to calculate
     if(initial == true)
-      return initialSupply.mul(exchangeRate);
+      return initialSupply.div(exchangeRate);
     else{
       uint totalTokens = actualTotalSupply().sub(balances[owner]);
-      return totalTokens.mul(exchangeRate);
+      return totalTokens.div(exchangeRate);
     }
   }
 
