@@ -15,7 +15,7 @@ contract('DebtToken', function(accounts){
       _decimalUnits:   18,
       //_dayLength:  86400,
       _dayLength:  10,
-      _gracePeriod:   60,
+      _loanTerm:   60,
       _loanCycle: 20,
       _interestRatePerCycle: 2,
       _lender: accounts[1]
@@ -35,7 +35,7 @@ contract('DebtToken', function(accounts){
             deployment_config._exchangeRate,
             deployment_config._decimalUnits,
             deployment_config._dayLength,
-            deployment_config._gracePeriod,
+            deployment_config._loanTerm,
             deployment_config._loanCycle,
             deployment_config._interestRatePerCycle,
             deployment_config._lender
@@ -123,10 +123,10 @@ contract('DebtToken', function(accounts){
           }
 
           //Update EVM time to required time
-          var time = deployment_config._gracePeriod*deployment_config._dayLength*1000;
+          var time = deployment_config._loanTerm*deployment_config._dayLength*1000;
           forceMine(time);
 
-          assert.equal(contract.hasGracePeriodOver.call(),true,'Loan grace period has not over ( '+web3.eth.getBlock('latest').timestamp+' )');
+          assert.equal(contract.isTermOver.call(),true,'Loan tern has not over ( '+web3.eth.getBlock('latest').timestamp+' )');
           doUpdate();
         })
 
@@ -208,7 +208,7 @@ contract('DebtToken', function(accounts){
               deployment_config._exchangeRate,
               deployment_config._decimalUnits,
               deployment_config._dayLength,
-              deployment_config._gracePeriod,
+              deployment_config._loanTerm,
               deployment_config._loanCycle,
               deployment_config._interestRatePerCycle,
               deployment_config._lender
@@ -236,7 +236,7 @@ contract('DebtToken', function(accounts){
                       var _value = newcontract.getLoanValue.call(false),//fetch the initial loan value
                       _lender = newcontract.lender.call(),
                       _lenderBalance = web3.eth.getBalance(_lender);
-                      console.log('Loan grace period:', newcontract.hasGracePeriodOver.call() );
+                      console.log('Loan term over:', newcontract.isTermOver.call() );
 
                       web3.eth.sendTransaction({from:Me,to:newcontract.address,value:_value},function(e,r){
 
