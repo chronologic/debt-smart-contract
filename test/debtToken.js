@@ -19,31 +19,29 @@ contract('DebtToken', function(accounts){
       _lender: accounts[1],
       _borrower: Me
     },
-    unit = Math.pow(10,deployment_config._decimalUnits);
+    unit = Math.pow(10,deployment_config._decimalUnits),
+    deployNewDebtContract = function(){
+      return DebtToken.new(
+          deployment_config._tokenName,
+          deployment_config._tokenSymbol,
+          deployment_config._initialAmount,
+          deployment_config._exchangeRate,
+          deployment_config._decimalUnits,
+          deployment_config._dayLength,
+          deployment_config._loanTerm,
+          deployment_config._loanCycle,
+          deployment_config._interestRatePerCycle,
+          deployment_config._lender
+      );
+    };
 
     function forceMine(time){
       web3.currentProvider.send({jsonrpc: "2.0", method: "evm_increaseTime", params: [time], id: 123});
       web3.currentProvider.send({jsonrpc: "2.0", method: "evm_mine", params: [], id: 0})
     }
 
-    function deployDebtToken() {
-      return DebtToken.new(
-        deployment_config._tokenName,
-        deployment_config._tokenSymbol,
-        deployment_config._initialAmount,
-        deployment_config._exchangeRate,
-        deployment_config._decimalUnits,
-        deployment_config._dayLength,
-        deployment_config._loanTerm,
-        deployment_config._loanCycle,
-        deployment_config._interestRatePerCycle,
-        deployment_config._lender,
-        deployment_config._borrower
-      )
-    }
-
     it('should deploy the contract', function (done) {
-      deployDebtToken()
+        deployNewDebtContract()
         .then(function(inst){
             contract = inst.contract;
             web3 = inst.constructor.web3;
@@ -204,8 +202,7 @@ contract('DebtToken', function(accounts){
         })
 
         it('Should successfully refund before contract maturation',function(done){
-
-          deployDebtToken()
+          deployNewDebtContract()
           .then(function(inst){
               newcontract = inst.contract;
               assert.notEqual(contract.address, null, 'Contract not successfully deployed');
