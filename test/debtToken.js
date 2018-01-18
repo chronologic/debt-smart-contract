@@ -31,7 +31,8 @@ contract('DebtToken', function(accounts){
           deployment_config._loanTerm,
           deployment_config._loanCycle,
           deployment_config._interestRatePerCycle,
-          deployment_config._lender
+          deployment_config._lender,
+          deployment_config._borrower
       );
     };
 

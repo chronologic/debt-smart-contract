@@ -57,19 +57,20 @@ contract('DebtTokenDeployer', accounts => {
         });
     }
 
-    it('should deploy the contract', async () => {
-        const simpleToken = await SimpleToken.new()
-        const debtTokenDeployer = await deployDebtTokenDeployer(simpleToken.address)
+    let simpleToken, debtTokenDeployer
 
+    beforeEach(async function () {
+        simpleToken = await SimpleToken.new()
+        debtTokenDeployer = await deployDebtTokenDeployer(simpleToken.address)
+    })
+
+    it('should deploy the contract', async () => {
         assert.notEqual(debtTokenDeployer.address, null, 'Contract not successfully deployed')
         assert.isTrue(deploymentConfig._deploymentFee.equals(debtTokenDeployer.contract.dayTokenFees()))
         assert.equal(simpleToken.address, debtTokenDeployer.contract.dayTokenAddress())
     })
 
     it('should only allow owner to change the fee for deployment', async () => {
-        const simpleToken = await SimpleToken.new()
-        const debtTokenDeployer = await deployDebtTokenDeployer(simpleToken.address)
-
         const newFee = deploymentConfig._deploymentFee.times(2)
         const owner = await debtTokenDeployer.owner()
         const caller = accounts[1]
@@ -87,9 +88,6 @@ contract('DebtTokenDeployer', accounts => {
     })
 
     it('should allow to change the fee for deployment', async () => {
-        const simpleToken = await SimpleToken.new()
-        const debtTokenDeployer = await deployDebtTokenDeployer(simpleToken.address)
-        
         const newFee = deploymentConfig._deploymentFee.times(2)
         await debtTokenDeployer.updateDayTokenFees(newFee)
 
@@ -100,9 +98,6 @@ contract('DebtTokenDeployer', accounts => {
     })
 
     it('should fail when no fee was sent before deployment', async () => {
-        const simpleToken = await SimpleToken.new()
-        const debtTokenDeployer = await deployDebtTokenDeployer(simpleToken.address)
-        
         try {
             await createDebtToken(debtTokenDeployer)
         } catch (error) {
@@ -114,9 +109,6 @@ contract('DebtTokenDeployer', accounts => {
     })
 
     it('should fail when fee was to small', async () => {
-        const simpleToken = await SimpleToken.new()
-        const debtTokenDeployer = await deployDebtTokenDeployer(simpleToken.address)
-
         const fee = deploymentConfig._deploymentFee.minus("1e18")
         await grantFeeTokens(simpleToken, debtTokenDeployer.address, fee)
         
@@ -131,9 +123,6 @@ contract('DebtTokenDeployer', accounts => {
     })
 
     it('should pass when fee was to exactly as required', async () => {
-        const simpleToken = await SimpleToken.new()
-        const debtTokenDeployer = await deployDebtTokenDeployer(simpleToken.address)
-
         const fee = deploymentConfig._deploymentFee
         
         await grantFeeTokens(simpleToken, debtTokenDeployer.address, fee)
@@ -149,9 +138,6 @@ contract('DebtTokenDeployer', accounts => {
     })
 
     it('should take no more than transaction fee even if was granted more', async () => {
-        const simpleToken = await SimpleToken.new()
-        const debtTokenDeployer = await deployDebtTokenDeployer(simpleToken.address)
-
         const fee = deploymentConfig._deploymentFee.times(2)
         
         await grantFeeTokens(simpleToken, debtTokenDeployer.address, fee) // we always granting 2*deployment fee to borrower

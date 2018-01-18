@@ -45,6 +45,16 @@ contract DebtToken {
       address _lender,
       address _borrower
       ) {
+
+      require(_exchangeRate > 0);
+      require(_initialAmount > 0);
+      require(_dayLength > 0);
+      require(_loanTerm > 0);
+      require(_loanCycle > 0);
+
+      require(_lender != 0x0);
+      require(_borrower != 0x0);
+      
       exchangeRate = _exchangeRate;                           // Exchange rate for the coins
       initialSupply = _initialAmount.mul(exchangeRate);            // Update initial supply
       totalSupply = initialSupply;                           //Update total supply
