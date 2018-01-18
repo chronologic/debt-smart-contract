@@ -243,7 +243,7 @@ contract('DebtToken', function(accounts){
         });
         
         it('Should confirm loanValue does not increase after refundLoan',function(done){
-          var time = deployment_config._loanCycle*2*deployment_config._dayLength*2000;
+          var time = deployment_config._loanCycle*2*deployment_config._dayLength*1000;
           forceMine(time);
           
           totalSupply = contract.totalSupply.call(),
