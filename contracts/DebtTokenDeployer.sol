@@ -1,10 +1,10 @@
 import './DebtToken.sol';
-import 'zeppelin/contracts/token/ERC20.sol';
+import '../installed_contracts/zeppelin/contracts/token/ERC20.sol';
+import '../installed_contracts/zeppelin/contracts/ownership/Ownable.sol';
 
 pragma solidity ^0.4.15;
-contract DeployDebtToken is Ownable{
+contract DebtTokenDeployer is Ownable{
 
-    address public owner;
     address public dayTokenAddress;
     uint public dayTokenFees; //DAY tokens to be paid for deploying custom DAY contract
     ERC20 dayToken;
@@ -12,10 +12,9 @@ contract DeployDebtToken is Ownable{
     event FeeUpdated(uint _fee, uint _time);
     event DebtTokenCreated(address  _creator, address _debtTokenAddress, uint256 _time);
 
-    function DeployDebtToken(address _dayTokenAddress, uint _dayTokenFees){
+    function DebtTokenDeployer(address _dayTokenAddress, uint _dayTokenFees){
         dayTokenAddress = _dayTokenAddress;
         dayTokenFees = _dayTokenFees;
-        owner = msg.sender;
         dayToken = ERC20(dayTokenAddress);
     }
 
@@ -33,14 +32,16 @@ contract DeployDebtToken is Ownable{
         uint256 _loanTerm,
         uint256 _loanCycle,
         uint256 _intrestRatePerCycle,
-        address _lender){
+        address _lender)
+    public
+    {
 
         address user = msg.sender;
 
         if(dayToken.transferFrom(user, this, dayTokenFees)){
             DebtToken newDebtToken = new DebtToken(_tokenName, _tokenSymbol, _initialAmount, _exchangeRate,
                 _decimalUnits, _dayLength, _loanTerm, _loanCycle,
-                _intrestRatePerCycle, _lender);
+                _intrestRatePerCycle, _lender, user);
             DebtTokenCreated(user, address(newDebtToken), now);
         }
 

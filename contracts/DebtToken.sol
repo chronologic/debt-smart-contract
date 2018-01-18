@@ -1,9 +1,8 @@
-import 'zeppelin/ownership/Ownable.sol';
-import 'zeppelin/math/SafeMath.sol';
+import 'installed_contracts/zeppelin/contracts/math/SafeMath.sol';
 
 pragma solidity ^0.4.15;
 
-contract DebtToken is Ownable {
+contract DebtToken {
   using SafeMath for uint256;
   /**
   Recognition data
@@ -23,12 +22,13 @@ contract DebtToken is Ownable {
   uint256 public loanActivation; //Timestamp the loan was funded
   
   uint256 public interestRatePerCycle; //Interest rate per interest cycle
-  uint256 public interestCycleLength = 30; //Total number of days per interest cycle
+  uint256 public interestCycleLength; //Total number of days per interest cycle
   
   uint256 public totalInterestCycles; //Total number of interest cycles completed
   uint256 public lastInterestCycle; //Keep record of Initial value of Loan
   
   address public lender; //The address from which the loan will be funded, and to which the refund will be directed
+  address public borrower;
   
   uint256 public constant PERCENT_DIVISOR = 100;
   
@@ -42,12 +42,13 @@ contract DebtToken is Ownable {
       uint256 _loanTerm,
       uint256 _loanCycle,
       uint256 _interestRatePerCycle,
-      address _lender
+      address _lender,
+      address _borrower
       ) {
       exchangeRate = _exchangeRate;                           // Exchange rate for the coins
       initialSupply = _initialAmount.mul(exchangeRate);            // Update initial supply
       totalSupply = initialSupply;                           //Update total supply
-      balances[msg.sender] = initialSupply;                 // Give the creator all initial tokens
+      balances[_borrower] = initialSupply;                 // Give the creator all initial tokens
       
       name = _tokenName;                                   // Set the name for display purposes
       decimals = _decimalUnits;                             // Amount of decimals for display purposes
@@ -58,8 +59,9 @@ contract DebtToken is Ownable {
       interestCycleLength = _loanCycle;                   //set the Interest cycle period
       interestRatePerCycle = _interestRatePerCycle;                      //Set the Interest rate per cycle
       lender = _lender;                             //set lender address
+      borrower = _borrower;
 
-      Transfer(0,msg.sender,totalSupply);//Allow funding be tracked
+      Transfer(0,_borrower,totalSupply);//Allow funding be tracked
   }
 
   /** 
@@ -74,6 +76,16 @@ contract DebtToken is Ownable {
     return balances[_owner];
   }
 
+  modifier onlyBorrower() {
+    require(isBorrower());
+    _;
+  }
+
+  modifier onlyLender() {
+    require(isBorrower());
+    _;
+  }
+
   /**
   MintableToken functionality
    */
@@ -81,7 +93,6 @@ contract DebtToken is Ownable {
   event MintFinished();
 
   bool public mintingFinished = true;
-
 
   modifier canMint() {
     require(!mintingFinished);
@@ -106,7 +117,7 @@ contract DebtToken is Ownable {
    * @dev Function to stop minting new tokens.
    * @return True if the operation was successful.
    */
-  function finishMinting() onlyOwner private returns (bool) {
+  function finishMinting() onlyBorrower private returns (bool) {
     mintingFinished = true;
     MintFinished();
     return true;
@@ -130,7 +141,7 @@ contract DebtToken is Ownable {
     if(initial == true)
       return initialSupply.div(exchangeRate);
     else{
-      uint totalTokens = actualTotalSupply().sub(balances[owner]);
+      uint totalTokens = actualTotalSupply().sub(balances[borrower]);
       return totalTokens.div(exchangeRate);
     }
   }
@@ -153,11 +164,11 @@ contract DebtToken is Ownable {
   Check that caller's address is the borrower
   */
   function isBorrower() private constant returns (bool){
-    return msg.sender == owner;
+    return msg.sender == borrower;
   }
 
   function isLoanFunded() public constant returns(bool) {
-    return balances[lender] > 0 && balances[owner] == 0;
+    return balances[lender] > 0 && balances[borrower] == 0;
   }
 
   /**
@@ -184,7 +195,7 @@ contract DebtToken is Ownable {
   calculate the total number of passed interest cycles and coin value
   */
   function calculateInterestDue() public constant returns(uint256 _coins,uint256 _cycle){
-    if(!isTermOver())
+    if(!isTermOver() || !isLoanFunded())
       return (0,0);
     else{
       uint timeDiff = now.sub(lastInterestCycle);
@@ -215,21 +226,21 @@ contract DebtToken is Ownable {
     require(msg.value == getLoanValue(true)); //Ensure input available
     require(!isLoanFunded()); //Avoid double payment
 
-    balances[owner] = balances[owner].sub(totalSupply);
+    balances[borrower] = balances[borrower].sub(totalSupply);
     balances[msg.sender] = balances[msg.sender].add(totalSupply);
 
     loanActivation = now;  //store the time loan was activated
     lastInterestCycle = now.add(dayLength.mul(loanTerm) ) ; //store the date interest matures
     mintingFinished = false;                 //Enable minting
     
-    owner.transfer(msg.value);
-    Transfer(owner,msg.sender,totalSupply);//Allow funding be tracked
+    borrower.transfer(msg.value);
+    Transfer(borrower,msg.sender,totalSupply);//Allow funding be tracked
   }
 
   /**
   Make payment to refund loan
   */
-  function refundLoan() onlyOwner public payable{
+  function refundLoan() onlyBorrower public payable{
     if(! isInterestStatusUpdated() )
         updateInterest(); //Ensure Interest is updated
 
@@ -239,10 +250,10 @@ contract DebtToken is Ownable {
     finishMinting() ;//Prevent further Minting
 
     balances[lender] = balances[lender].sub(totalSupply);
-    balances[owner] = balances[owner].add(totalSupply);
+    balances[borrower] = balances[borrower].add(totalSupply);
 
     lender.transfer(msg.value);
-    Transfer(lender,owner,totalSupply);//Allow funding be tracked
+    Transfer(lender,borrower,totalSupply);//Allow funding be tracked
   }
 
   /**
@@ -255,11 +266,5 @@ contract DebtToken is Ownable {
     else if(isLender())
       fundLoan();
     else revert(); //Throw if neither of cases apply, ensure no free money
-  }
-
-  //Disable all unwanted Features
-
-  function transferOwnership(address newOwner) onlyOwner public {
-    revert();  //Disable the transferOwnership feature: Loan non-transferrable
   }
 }

@@ -10,15 +10,14 @@ contract('DebtToken', function(accounts){
       _tokenName:  'Performance Global Loan',
       _tokenSymbol:  'PGLOAN',
       _initialAmount: 0.5*_1ether,
-      //_initialAmount: 500000000000000000000,//wei value of initial loan
       _exchangeRate:   1,
       _decimalUnits:   18,
-      //_dayLength:  86400,
       _dayLength:  10,
       _loanTerm:   60,
       _loanCycle: 20,
       _interestRatePerCycle: 2,
-      _lender: accounts[1]
+      _lender: accounts[1],
+      _borrower: Me
     },
     unit = Math.pow(10,deployment_config._decimalUnits);
 
@@ -27,19 +26,24 @@ contract('DebtToken', function(accounts){
       web3.currentProvider.send({jsonrpc: "2.0", method: "evm_mine", params: [], id: 0})
     }
 
+    function deployDebtToken() {
+      return DebtToken.new(
+        deployment_config._tokenName,
+        deployment_config._tokenSymbol,
+        deployment_config._initialAmount,
+        deployment_config._exchangeRate,
+        deployment_config._decimalUnits,
+        deployment_config._dayLength,
+        deployment_config._loanTerm,
+        deployment_config._loanCycle,
+        deployment_config._interestRatePerCycle,
+        deployment_config._lender,
+        deployment_config._borrower
+      )
+    }
+
     it('should deploy the contract', function (done) {
-        DebtToken.new(
-            deployment_config._tokenName,
-            deployment_config._tokenSymbol,
-            deployment_config._initialAmount,
-            deployment_config._exchangeRate,
-            deployment_config._decimalUnits,
-            deployment_config._dayLength,
-            deployment_config._loanTerm,
-            deployment_config._loanCycle,
-            deployment_config._interestRatePerCycle,
-            deployment_config._lender
-        )
+      deployDebtToken()
         .then(function(inst){
             contract = inst.contract;
             web3 = inst.constructor.web3;
@@ -201,18 +205,7 @@ contract('DebtToken', function(accounts){
 
         it('Should successfully refund before contract maturation',function(done){
 
-          DebtToken.new(
-              deployment_config._tokenName,
-              deployment_config._tokenSymbol,
-              deployment_config._initialAmount,
-              deployment_config._exchangeRate,
-              deployment_config._decimalUnits,
-              deployment_config._dayLength,
-              deployment_config._loanTerm,
-              deployment_config._loanCycle,
-              deployment_config._interestRatePerCycle,
-              deployment_config._lender
-          )
+          deployDebtToken()
           .then(function(inst){
               newcontract = inst.contract;
               assert.notEqual(contract.address, null, 'Contract not successfully deployed');
@@ -253,7 +246,7 @@ contract('DebtToken', function(accounts){
         });
         
         it('Should confirm loanValue does not increase after refundLoan',function(done){
-          var time = deployment_config._loanCycle*2*deployment_config._dayLength*1000;
+          var time = deployment_config._loanCycle*2*deployment_config._dayLength*2000;
           forceMine(time);
           
           totalSupply = contract.totalSupply.call(),
@@ -262,8 +255,8 @@ contract('DebtToken', function(accounts){
           newtotalSupply = newcontract.totalSupply.call(),
           newactualTotalSupply = newcontract.actualTotalSupply.call();
           
-          assert.equal( Number(totalSupply), Number(actualTotalSupply, 'Loan increased from '+totalSupply+' to '+actualTotalSupply+' after loan was repaid') );
-          assert.equal( Number(newtotalSupply), Number(newactualTotalSupply, 'New Loan increased from '+newtotalSupply+' to '+newactualTotalSupply+' after loan was repaid') );
+          assert.equal( Number(totalSupply), Number(actualTotalSupply), 'Loan increased from '+totalSupply+' to '+actualTotalSupply+' after loan was repaid');
+          assert.equal( Number(newtotalSupply), Number(newactualTotalSupply), 'New Loan increased from '+newtotalSupply+' to '+newactualTotalSupply+' after loan was repaid');
           done();
         })
         
