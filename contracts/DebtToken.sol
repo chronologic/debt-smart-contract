@@ -1,4 +1,4 @@
-import 'installed_contracts/zeppelin/contracts/math/SafeMath.sol';
+import '../installed_contracts/zeppelin/contracts/math/SafeMath.sol';
 
 pragma solidity ^0.4.15;
 
@@ -10,12 +10,12 @@ contract DebtToken {
   string public name;
   string public symbol;
   string public version = 'DT0.1';
-  uint256 public decimals;
-  
+  uint256 public decimals = 18;
+
   /**
   Actual logic data
   */
-  uint256 public dayLength = 86400;//Number of seconds in a day
+  uint256 public dayLength;//Number of seconds in a day
   uint256 public loanTerm;//Loan term in days
   uint256 public exchangeRate; //Exchange rate for Ether to loan coins
   uint256 public initialSupply; //Keep record of Initial value of Loan
@@ -58,9 +58,8 @@ contract DebtToken {
       initialSupply = _initialAmount.mul(exchangeRate);            // Update initial supply
       totalSupply = initialSupply;                           //Update total supply
       balances[_borrower] = initialSupply;                 // Give the creator all initial tokens
-      
-      name = _tokenName;                                   // Set the name for display purposes
-      decimals = _decimalUnits;                             // Amount of decimals for display purposes
+
+      name = _tokenName;                                    // Amount of decimals for display purposes
       symbol = _tokenSymbol;                              // Set the symbol for display purposes
       
       dayLength = _dayLength;                             //Set the length of each day in seconds...For dev purposes
