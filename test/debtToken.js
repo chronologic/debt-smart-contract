@@ -10,15 +10,14 @@ contract('DebtToken', function(accounts){
       _tokenName:  'Performance Global Loan',
       _tokenSymbol:  'PGLOAN',
       _initialAmount: 0.5*_1ether,
-      //_initialAmount: 500000000000000000000,//wei value of initial loan
       _exchangeRate:   1,
       _decimalUnits:   18,
-      //_dayLength:  86400,
       _dayLength:  10,
       _loanTerm:   60,
       _loanCycle: 20,
       _interestRatePerCycle: 2,
-      _lender: accounts[1]
+      _lender: accounts[1],
+      _borrower: Me
     },
     unit = Math.pow(10,deployment_config._decimalUnits),
     deployNewDebtContract = function(){
@@ -32,7 +31,8 @@ contract('DebtToken', function(accounts){
           deployment_config._loanTerm,
           deployment_config._loanCycle,
           deployment_config._interestRatePerCycle,
-          deployment_config._lender
+          deployment_config._lender,
+          deployment_config._borrower
       );
     };
 
@@ -203,7 +203,6 @@ contract('DebtToken', function(accounts){
         })
 
         it('Should successfully refund before contract maturation',function(done){
-
           deployNewDebtContract()
           .then(function(inst){
               newcontract = inst.contract;
@@ -254,8 +253,8 @@ contract('DebtToken', function(accounts){
           newtotalSupply = newcontract.totalSupply.call(),
           newactualTotalSupply = newcontract.actualTotalSupply.call();
           
-          assert.equal( Number(totalSupply), Number(actualTotalSupply, 'Loan increased from '+totalSupply+' to '+actualTotalSupply+' after loan was repaid') );
-          assert.equal( Number(newtotalSupply), Number(newactualTotalSupply, 'New Loan increased from '+newtotalSupply+' to '+newactualTotalSupply+' after loan was repaid') );
+          assert.equal( Number(totalSupply), Number(actualTotalSupply), 'Loan increased from '+totalSupply+' to '+actualTotalSupply+' after loan was repaid');
+          assert.equal( Number(newtotalSupply), Number(newactualTotalSupply), 'New Loan increased from '+newtotalSupply+' to '+newactualTotalSupply+' after loan was repaid');
           done();
         })
         

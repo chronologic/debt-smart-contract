@@ -26,6 +26,6 @@
   },
   "homepage": "https://github.com/chronologic/debt-smart-contract#readme",
   "dependencies": {
-    "package-name": "^0.1.0"
+    "bignumber.js": "^5.0.0"
   }
 }
