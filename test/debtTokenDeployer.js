@@ -44,19 +44,6 @@ contract('DebtTokenDeployer', accounts => {
         )
     }
 
-    function getEvents(contract, blocks = {})
-    {
-        return new Promise((success, reject) => {
-            contract.allEvents(blocks).get((error, events) => {
-                if (error) {
-                    reject(error);
-                } else {
-                    success(events);
-                }
-            });
-        });
-    }
-
     let simpleToken, debtTokenDeployer
 
     beforeEach(async function () {
@@ -89,10 +76,9 @@ contract('DebtTokenDeployer', accounts => {
 
     it('should allow to change the fee for deployment', async () => {
         const newFee = deploymentConfig._deploymentFee.times(2)
-        await debtTokenDeployer.updateDayTokenFees(newFee)
+        const tx = await debtTokenDeployer.updateDayTokenFees(newFee)
 
-        const events = await getEvents(debtTokenDeployer)
-        const foundEvent = events.find(ev => ev.event == 'FeeUpdated');
+        const foundEvent = tx.logs.find(ev => ev.event == 'FeeUpdated');
 
         assert.isTrue(foundEvent.args._fee.equals(newFee));
     })
@@ -126,10 +112,9 @@ contract('DebtTokenDeployer', accounts => {
         const fee = deploymentConfig._deploymentFee
         
         await grantFeeTokens(simpleToken, debtTokenDeployer.address, fee)
-        await createDebtToken(debtTokenDeployer)
+        const tx = await createDebtToken(debtTokenDeployer)
 
-        const events = await getEvents(debtTokenDeployer)
-        const foundEvent = events.find(ev => ev.event == 'DebtTokenCreated')
+        const foundEvent = tx.logs.find(ev => ev.event == 'DebtTokenCreated')
 
         assert.isOk(foundEvent);
         assert.equal(foundEvent.args._creator, deploymentConfig._borrower, "Borrower shall be set as contract creator")
@@ -141,13 +126,12 @@ contract('DebtTokenDeployer', accounts => {
         const fee = deploymentConfig._deploymentFee.times(2)
         
         await grantFeeTokens(simpleToken, debtTokenDeployer.address, fee) // we always granting 2*deployment fee to borrower
-        await createDebtToken(debtTokenDeployer)
+        const tx = await createDebtToken(debtTokenDeployer)
 
         const contractTokenBalance = await simpleToken.balanceOf(debtTokenDeployer.address)
         const borrowerTokenBalanceAfterDeployment = await simpleToken.balanceOf(deploymentConfig._borrower)
 
-        const events = await getEvents(debtTokenDeployer)
-        const foundEvent = events.find(ev => ev.event == 'DebtTokenCreated')
+        const foundEvent = tx.logs.find(ev => ev.event == 'DebtTokenCreated')
 
         assert.isOk(foundEvent);
         assert.equal(foundEvent.args._creator, deploymentConfig._borrower, "Borrower shall be set as contract creator")
