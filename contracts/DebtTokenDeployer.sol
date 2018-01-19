@@ -2,7 +2,7 @@ import './DebtToken.sol';
 import '../installed_contracts/zeppelin/contracts/token/ERC20.sol';
 import '../installed_contracts/zeppelin/contracts/ownership/Ownable.sol';
 
-pragma solidity ^0.4.15;
+pragma solidity ^0.4.18;
 contract DebtTokenDeployer is Ownable{
 
     address public dayTokenAddress;

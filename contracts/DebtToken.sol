@@ -1,6 +1,6 @@
 import '../installed_contracts/zeppelin/contracts/math/SafeMath.sol';
 
-pragma solidity ^0.4.15;
+pragma solidity ^0.4.18;
 
 contract DebtToken {
   using SafeMath for uint256;
