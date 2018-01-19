@@ -35,21 +35,16 @@ contract DebtTokenDeployer is Ownable{
         address _lender)
     public
     {
-
-        address user = msg.sender;
-
-        if(dayToken.transferFrom(user, this, dayTokenFees)){
+        if(dayToken.transferFrom(msg.sender, this, dayTokenFees)){
             DebtToken newDebtToken = new DebtToken(_tokenName, _tokenSymbol, _initialAmount, _exchangeRate,
                 _decimalUnits, _dayLength, _loanTerm, _loanCycle,
-                _intrestRatePerCycle, _lender, user);
-            DebtTokenCreated(user, address(newDebtToken), now);
+                _intrestRatePerCycle, _lender, msg.sender);
+            DebtTokenCreated(msg.sender, address(newDebtToken), now);
         }
-
     }
 
     // to collect all fees paid till now
     function fetchDayTokens() onlyOwner public {
         dayToken.transfer(owner, dayToken.balanceOf(this));
     }
-
 }

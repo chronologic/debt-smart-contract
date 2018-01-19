@@ -49,7 +49,6 @@ contract DebtToken {
       require(_exchangeRate > 0);
       require(_initialAmount > 0);
       require(_dayLength > 0);
-      require(_loanTerm > 0);
       require(_loanCycle > 0);
 
       require(_lender != 0x0);
