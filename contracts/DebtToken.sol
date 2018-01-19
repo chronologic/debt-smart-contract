@@ -13,6 +13,20 @@ contract DebtToken {
   uint256 public decimals = 18;
 
   /**
+  ERC20 properties
+  */
+  uint256 public totalSupply;
+  mapping(address => uint256) public balances;
+  event Transfer(address indexed from, address indexed to, uint256 value);
+
+  /**
+  Mintable Token properties
+  */
+  bool public mintingFinished = true;
+  event Mint(address indexed to, uint256 amount);
+  event MintFinished();
+
+  /**
   Actual logic data
   */
   uint256 public dayLength;//Number of seconds in a day
@@ -37,7 +51,6 @@ contract DebtToken {
       string _tokenSymbol,
       uint256 _initialAmount,
       uint256 _exchangeRate,
-      uint256 _decimalUnits,
       uint256 _dayLength,
       uint256 _loanTerm,
       uint256 _loanCycle,
@@ -70,65 +83,6 @@ contract DebtToken {
       borrower = _borrower;
 
       Transfer(0,_borrower,totalSupply);//Allow funding be tracked
-  }
-
-  /** 
-  Partial ERC20 functionality
-   */
-  uint256 public totalSupply;
-  mapping(address => uint256) balances;
-
-  event Transfer(address indexed from, address indexed to, uint256 value);
-
-  function balanceOf(address _owner) public constant returns (uint256 balance) {
-    return balances[_owner];
-  }
-
-  modifier onlyBorrower() {
-    require(isBorrower());
-    _;
-  }
-
-  modifier onlyLender() {
-    require(isLender());
-    _;
-  }
-
-  /**
-  MintableToken functionality
-   */
-  event Mint(address indexed to, uint256 amount);
-  event MintFinished();
-
-  bool public mintingFinished = true;
-
-  modifier canMint() {
-    require(!mintingFinished);
-    _;
-  }
-
-  /**
-   * @dev Function to mint tokens
-   * @param _to The address that will receive the minted tokens.
-   * @param _amount The amount of tokens to mint.
-   * @return A boolean that indicates if the operation was successful.
-   */
-  function mint(address _to, uint256 _amount) canMint internal returns (bool) {
-    totalSupply = totalSupply.add(_amount);
-    balances[_to] = balances[_to].add(_amount);
-    Mint(_to, _amount);
-    Transfer(0x0, _to, _amount);
-    return true;
-  }
-
-  /**
-   * @dev Function to stop minting new tokens.
-   * @return True if the operation was successful.
-   */
-  function finishMinting() onlyBorrower internal returns (bool) {
-    mintingFinished = true;
-    MintFinished();
-    return true;
   }
 
   /**
@@ -234,15 +188,12 @@ contract DebtToken {
     require(msg.value == getLoanValue(true)); //Ensure input available
     require(!isLoanFunded()); //Avoid double payment
 
-    balances[borrower] = balances[borrower].sub(totalSupply);
-    balances[msg.sender] = balances[msg.sender].add(totalSupply);
-
     loanActivation = now;  //store the time loan was activated
     lastInterestCycle = now.add(dayLength.mul(loanTerm) ) ; //store the date interest matures
     mintingFinished = false;                 //Enable minting
-    
+    transferFrom(borrower,lender,totalSupply);
+
     borrower.transfer(msg.value);
-    Transfer(borrower,msg.sender,totalSupply);//Allow funding be tracked
   }
 
   /**
@@ -256,13 +207,60 @@ contract DebtToken {
     require(isLoanFunded());
 
     finishMinting() ;//Prevent further Minting
-
-    balances[lender] = balances[lender].sub(totalSupply);
-    balances[borrower] = balances[borrower].add(totalSupply);
+    transferFrom(lender,borrower,totalSupply);
 
     lender.transfer(msg.value);
-    Transfer(lender,borrower,totalSupply);//Allow funding be tracked
   }
+
+  /**
+  Partial ERC20 functionality
+   */
+
+  function balanceOf(address _owner) public constant returns (uint256 balance) {
+    return balances[_owner];
+  }
+
+  function transferFrom(address _from, address _to, uint256 _value) internal {
+    require(_to != address(0));
+
+    balances[_from] = balances[_from].sub(_value);
+    balances[_to] = balances[_to].add(_value);
+    Transfer(_from, _to, _value);
+  }
+
+  /**
+  MintableToken functionality
+   */
+
+  modifier canMint() {
+    require(!mintingFinished);
+    _;
+  }
+
+  /**
+   * @dev Function to mint tokens
+   * @param _to The address that will receive the minted tokens.
+   * @param _amount The amount of tokens to mint.
+   * @return A boolean that indicates if the operation was successful.
+   */
+  function mint(address _to, uint256 _amount) canMint internal returns (bool) {
+    totalSupply = totalSupply.add(_amount);
+    balances[_to] = balances[_to].add(_amount);
+    Mint(_to, _amount);
+    Transfer(0x0, _to, _amount);
+    return true;
+  }
+
+  /**
+   * @dev Function to stop minting new tokens.
+   * @return True if the operation was successful.
+   */
+  function finishMinting() onlyBorrower internal returns (bool) {
+    mintingFinished = true;
+    MintFinished();
+    return true;
+  }
+
 
   /**
   Fallback function
@@ -274,5 +272,13 @@ contract DebtToken {
     else if(isLender())
       fundLoan();
     else revert(); //Throw if neither of cases apply, ensure no free money
+  }
+
+  /**
+  Modifiers
+  */
+  modifier onlyBorrower() {
+    require(isBorrower());
+    _;
   }
 }
