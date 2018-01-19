@@ -11,7 +11,6 @@ contract('DebtToken', function(accounts){
       _tokenSymbol:  'PGLOAN',
       _initialAmount: 0.5*_1ether,
       _exchangeRate:   1,
-      _decimalUnits:   18,
       _dayLength:  10,
       _loanTerm:   60,
       _loanCycle: 20,
@@ -19,14 +18,12 @@ contract('DebtToken', function(accounts){
       _lender: accounts[1],
       _borrower: Me
     },
-    unit = Math.pow(10,deployment_config._decimalUnits),
     deployNewDebtContract = function(){
       return DebtToken.new(
           deployment_config._tokenName,
           deployment_config._tokenSymbol,
           deployment_config._initialAmount,
           deployment_config._exchangeRate,
-          deployment_config._decimalUnits,
           deployment_config._dayLength,
           deployment_config._loanTerm,
           deployment_config._loanCycle,
