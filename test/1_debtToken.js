@@ -53,7 +53,7 @@ contract('DebtToken', function(accounts){
                 console.log('Symbol:', r);
               });
             contract.totalSupply(function(e,r){
-                console.log('totalSupply:', r);
+                console.log('totalSupply:', Number(r));
               });
 
             assert.notEqual(contract.address, null, 'Contract not successfully deployed');
@@ -166,7 +166,7 @@ contract('DebtToken', function(accounts){
 
     })
 
-    describe.skip('Loan Refund',function(){
+    describe('Loan Refund',function(){
         it('Should fail to refund amount diffferent from total due',function(done){
             var _value = contract.getLoanValue.call(true);//fetch the initial loan value
             web3.eth.sendTransaction({from:Me,to:contract.address,value:_value},function(e,r){
@@ -188,7 +188,7 @@ contract('DebtToken', function(accounts){
           _lender = contract.lender.call(),
           _lenderBalance = web3.eth.getBalance(_lender);
 
-          web3.eth.sendTransaction({from:Me,to:contract.address,value:_value},function(e,r){
+          web3.eth.sendTransaction({from:Me,to:contract.address,value:_value,gas:4000000},function(e,r){
             var balance = contract.balanceOf.call(Me),
             totalSupply = contract.actualTotalSupply.call();
             _debtownernewbal = web3.eth.getBalance(_lender);
