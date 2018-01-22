@@ -35,11 +35,11 @@
   * _borrower: address  
 
 #### Ropsten Test deployment
-  Most recent version of the code is deployed at:
+Most recent version of the code is deployed at:
 
-  https://ropsten.etherscan.io/token/0x126c694e085517c257ecdad8f46455cf0403008c
-  https://ropsten.etherscan.io/address/0x126c694e085517c257ecdad8f46455cf0403008c
-
+https://ropsten.etherscan.io/token/0x126c694e085517c257ecdad8f46455cf0403008c
+https://ropsten.etherscan.io/address/0x126c694e085517c257ecdad8f46455cf0403008c
+____
 
 ### Debt Token Deployer
 
@@ -55,9 +55,9 @@
     * _dayTokenFees:  100000000000000000000
 
   #### Ropsten Test deployment
-    Most recent version of the code is deployed at:
-
-    https://ropsten.etherscan.io/address/0x9d396156594b6a665fe28397e7bff3679dc24283
+  Most recent version of the code is deployed at:  
+  
+  https://ropsten.etherscan.io/address/0x9d396156594b6a665fe28397e7bff3679dc24283
 
 
 ### Tests
