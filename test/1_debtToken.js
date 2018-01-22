@@ -9,18 +9,29 @@ contract('DebtToken', function(accounts){
     var deployment_config = {
       _tokenName:  'Performance Global Loan',
       _tokenSymbol:  'PGLOAN',
-      _initialAmount: 500000000000000000,
-      //_initialAmount: 500000000000000000000,//wei value of initial loan
+      _initialAmount: 0.5*_1ether,
       _exchangeRate:   1,
-      _decimalUnits:   18,
-      //_dayLength:  86400,
       _dayLength:  10,
       _loanTerm:   60,
       _loanCycle: 20,
-      _interestRate: 2,
-      _debtOwner: accounts[1]
+      _interestRatePerCycle: 2,
+      _lender: accounts[1],
+      _borrower: Me
     },
-    unit = Math.pow(10,deployment_config._decimalUnits);
+    deployNewDebtContract = function(){
+      return DebtToken.new(
+          deployment_config._tokenName,
+          deployment_config._tokenSymbol,
+          deployment_config._initialAmount,
+          deployment_config._exchangeRate,
+          deployment_config._dayLength,
+          deployment_config._loanTerm,
+          deployment_config._loanCycle,
+          deployment_config._interestRatePerCycle,
+          deployment_config._lender,
+          deployment_config._borrower
+      );
+    };
 
     function forceMine(time){
       web3.currentProvider.send({jsonrpc: "2.0", method: "evm_increaseTime", params: [time], id: 123});
@@ -28,18 +39,7 @@ contract('DebtToken', function(accounts){
     }
 
     it('should deploy the contract', function (done) {
-        DebtToken.new(
-            deployment_config._tokenName,
-            deployment_config._tokenSymbol,
-            deployment_config._initialAmount,
-            deployment_config._exchangeRate,
-            deployment_config._decimalUnits,
-            deployment_config._dayLength,
-            deployment_config._loanTerm,
-            deployment_config._loanCycle,
-            deployment_config._interestRate,
-            deployment_config._debtOwner
-        )
+        deployNewDebtContract()
         .then(function(inst){
             contract = inst.contract;
             web3 = inst.constructor.web3;
@@ -53,7 +53,7 @@ contract('DebtToken', function(accounts){
                 console.log('Symbol:', r);
               });
             contract.totalSupply(function(e,r){
-                console.log('totalSupply:', r);
+                console.log('totalSupply:', Number(r));
               });
 
             assert.notEqual(contract.address, null, 'Contract not successfully deployed');
@@ -61,56 +61,82 @@ contract('DebtToken', function(accounts){
         });
     });
 
-    describe('Loan Activation',function(){
+    describe('Exchange Rate:: ',function(){
 
-        it('Should fail to send wrong amount to the contract from non-debtOwner',function(done){
+      it('Should test the Exchange Rate functionality',function(done){
+        var exchange  = Math.floor(Math.random()*10);
+        console.log(exchange);
+        DebtToken.new(
+            deployment_config._tokenName,
+            deployment_config._tokenSymbol,
+            deployment_config._initialAmount,
+            exchange,
+            deployment_config._dayLength,
+            deployment_config._loanTerm,
+            deployment_config._loanCycle,
+            deployment_config._interestRatePerCycle,
+            deployment_config._lender,
+            deployment_config._borrower
+        )
+        .then(function(inst){
+            var loanVal = inst.contract.getLoanValue.call(true);
+            assert.equal( Number(loanVal) , deployment_config._initialAmount, 'Exchange wrongly calculated');
+            done();
+        })
+      })
+      
+    })
+
+    describe('Loan Activation:: ',function(){
+
+        it('Should fail to send wrong amount to the contract from non-lender',function(done){
             var _value = web3.toWei(2, 'ether');
             web3.eth.sendTransaction({from:accounts[2],to:contract.address,value:_value},function(e,r){
-              assert.notEqual(e,null,'Wrong amount used to fund loan by non-debtOwner');
+              assert.notEqual(e,null,'Wrong amount used to fund loan by non-lender');
               done();
             });
         });
 
-        it('Should fail to send right amount to the contract from non-debtOwner',function(done){
+        it('Should fail to send right amount to the contract from non-lender',function(done){
           var _value = deployment_config._initialAmount;
           web3.eth.sendTransaction({from:accounts[2],to:contract.address,value:_value},function(e,r){
-            assert.notEqual(e,null,'Loan funded by non-debtOwner');
+            assert.notEqual(e,null,'Loan funded by non-lender');
             done();
           });
         });
 
-        it('Should fail to send wrong amount to the contract from debtOwner',function(done){
+        it('Should fail to send wrong amount to the contract from lender',function(done){
           var _value = web3.toWei(2, 'ether'),
-          debtOwner = deployment_config._debtOwner;
-          web3.eth.sendTransaction({from:debtOwner,to:contract.address,value:_value},function(e,r){
+          lender = deployment_config._lender;
+          web3.eth.sendTransaction({from:lender,to:contract.address,value:_value},function(e,r){
             assert.notEqual(e,null,'Wrong amount used to fund loan');
             done();
           });
         });
 
-        it('Should send right amount to the contract from debtOwner',function(done){
-          var _debtOwner = contract.debtOwner.call(),
+        it('Should send right amount to the contract from lender',function(done){
+          var _lender = contract.lender.call(),
           _value = contract.getLoanValue.call(true),
           _mybal = web3.eth.getBalance(Me),
-          txn = {from:_debtOwner,to:contract.address,value: _value, gas: 210000 };
+          txn = {from:_lender,to:contract.address,value: _value, gas: 210000 };
 
           web3.eth.sendTransaction(txn,function(e,r){
-            var balance = contract.balanceOf.call(_debtOwner),
+            var balance = contract.balanceOf.call(_lender),
             totalSupply = contract.actualTotalSupply.call();
             _mynewbal = web3.eth.getBalance(Me);
-            assert.equal(e,null,'Loan not successfully funded by debtOwner');
-            assert.equal(Number(balance),Number(totalSupply),'Wrong number of tokens assigned to debtOwner');
+            assert.equal(e,null,'Loan not successfully funded by lender');
+            assert.equal(Number(balance),Number(totalSupply),'Wrong number of tokens assigned to lender');
             assert.equal(Number(_mynewbal),Number(_mybal)+ deployment_config._initialAmount,'Wrong value of Ether sent to Owner');
             done();
           });
         });
     })
 
-    describe('Interest Accruing ',function(){
-        it('Should fetch interestUpdated satus',function(){
-            var interestStatusUpdated = contract.interestStatusUpdated.call();
+    describe('Interest Accruing:: ',function(){
+        it('Should fetch isInterestStatusUpdated status',function(){
+            var isInterestStatusUpdated = contract.isInterestStatusUpdated.call();
 
-            assert.notEqual(interestStatusUpdated,null, 'Did not successfully fetch interestStatusUpdated value, instead "'+interestStatusUpdated+'"');
+            assert.notEqual(isInterestStatusUpdated,null, 'Did not successfully fetch isInterestStatusUpdated value, instead "'+isInterestStatusUpdated+'"');
         })
 
         it('Should run updateInterest function from any address',function(done){
@@ -126,7 +152,7 @@ contract('DebtToken', function(accounts){
           var time = deployment_config._loanTerm*deployment_config._dayLength*1000;
           forceMine(time);
 
-          assert.equal(contract.loanMature.call(),true,'Loan not mature in due time ( '+web3.eth.getBlock('latest').timestamp+' )');
+          assert.equal(contract.isTermOver.call(),true,'Loan tern has not over ( '+web3.eth.getBlock('latest').timestamp+' )');
           doUpdate();
         })
 
@@ -160,15 +186,13 @@ contract('DebtToken', function(accounts){
         })
 
         it('Should fail to allow owner run finishMinting function',function(done){
-            contract.finishMinting({from:Me},function(e,r){
-              assert.notEqual(e,null,'Owner successfuly prevented minting without refunding Loan');
-              done();
-            });
+          assert.isNotOk(contract.finishMinting, "finishMiting shall be available internally only");
+          done();
         })
 
     })
 
-    describe('Loan Refund',function(){
+    describe('Loan Refund:: ',function(){
         it('Should fail to refund amount diffferent from total due',function(done){
             var _value = contract.getLoanValue.call(true);//fetch the initial loan value
             web3.eth.sendTransaction({from:Me,to:contract.address,value:_value},function(e,r){
@@ -187,88 +211,76 @@ contract('DebtToken', function(accounts){
 
         it('Should successfully refund correct amount',function(done){
           var _value = contract.getLoanValue.call(false),//fetch the initial loan value
-          _debtOwner = contract.debtOwner.call(),
-          _debtownerbal = web3.eth.getBalance(_debtOwner);
+          _lender = contract.lender.call(),
+          _lenderBalance = web3.eth.getBalance(_lender);
 
-          web3.eth.sendTransaction({from:Me,to:contract.address,value:_value},function(e,r){
+          web3.eth.sendTransaction({from:Me,to:contract.address,value:_value,gas:4000000},function(e,r){
             var balance = contract.balanceOf.call(Me),
             totalSupply = contract.actualTotalSupply.call();
-            _debtownernewbal = web3.eth.getBalance(_debtOwner);
+            _debtownernewbal = web3.eth.getBalance(_lender);
             assert.equal(e,null,'Loan not successfully refunded by Owner');
             assert.equal(Number(balance),Number(totalSupply),'Wrong number of tokens refunded to Owner');
-            assert.equal(Number(_debtownernewbal),Number(_debtownerbal)+ Number(_value),'Wrong value of Ether sent to debtOwner');
+            assert.equal(Number(_debtownernewbal),Number(_lenderBalance)+ Number(_value),'Wrong value of Ether sent to lender');
             done();
           });
         })
 
         it('Should successfully refund before contract maturation',function(done){
-
-          DebtToken.new(
-              deployment_config._tokenName,
-              deployment_config._tokenSymbol,
-              deployment_config._initialAmount,
-              deployment_config._exchangeRate,
-              deployment_config._decimalUnits,
-              deployment_config._dayLength,
-              deployment_config._loanTerm,
-              deployment_config._loanCycle,
-              deployment_config._interestRate,
-              deployment_config._debtOwner
-          )
+          deployNewDebtContract()
           .then(function(inst){
               newcontract = inst.contract;
               assert.notEqual(contract.address, null, 'Contract not successfully deployed');
 
-              var _debtOwner = newcontract.debtOwner.call(),
+              var _lender = newcontract.lender.call(),
               _value = newcontract.getLoanValue.call(true),
               _mybal = web3.eth.getBalance(Me),
-              txn = {from:_debtOwner,to:newcontract.address,value: _value, gas: 210000 };
+              txn = {from:_lender,to:newcontract.address,value: _value, gas: 210000 };
 
               web3.eth.sendTransaction(txn,function(e,r){
 
-                var _debtOwner = newcontract.debtOwner.call(),
-                balance = newcontract.balanceOf.call(_debtOwner),
+                var _lender = newcontract.lender.call(),
+                balance = newcontract.balanceOf.call(_lender),
                 totalSupply = newcontract.actualTotalSupply.call();
                 _mynewbal = web3.eth.getBalance(Me);
 
-                assert.equal(e,null,'Loan not successfully funded by debtOwner');
-                assert.equal(Number(balance),Number(totalSupply),'Wrong number of tokens assigned to debtOwner');
+                assert.equal(e,null,'Loan not successfully funded by lender');
+                assert.equal(Number(balance),Number(totalSupply),'Wrong number of tokens assigned to lender');
                 assert.equal(Number(_mynewbal),Number(_mybal)+ deployment_config._initialAmount,'Wrong value of Ether sent to Owner');
 
                       var _value = newcontract.getLoanValue.call(false),//fetch the initial loan value
-                      _debtOwner = newcontract.debtOwner.call(),
-                      _debtownerbal = web3.eth.getBalance(_debtOwner);
-                      console.log('Loan Maturity:', newcontract.loanMature.call() );
+                      _lender = newcontract.lender.call(),
+                      _lenderBalance = web3.eth.getBalance(_lender);
+                      console.log('Loan term over:', newcontract.isTermOver.call() );
 
                       web3.eth.sendTransaction({from:Me,to:newcontract.address,value:_value},function(e,r){
 
                         var balance = newcontract.balanceOf.call(Me),
                         totalSupply = newcontract.actualTotalSupply.call();
-                        _debtownernewbal = web3.eth.getBalance(_debtOwner);
+                        _debtownernewbal = web3.eth.getBalance(_lender);
                         assert.equal(e,null,'Loan not successfully refunded by Owner');
                         assert.equal(Number(balance),Number(totalSupply),'Wrong number of tokens refunded to Owner');
-                        assert.equal(Number(_debtownernewbal),Number(_debtownerbal)+ Number(_value),'Wrong value of Ether sent to debtOwner');
+                        assert.equal(Number(_debtownernewbal),Number(_lenderBalance)+ Number(_value),'Wrong value of Ether sent to lender');
                         done();
                       });
               });
           });
         });
-        
+
         it('Should confirm loanValue does not increase after refundLoan',function(done){
           var time = deployment_config._loanCycle*2*deployment_config._dayLength*1000;
           forceMine(time);
-          
+
           totalSupply = contract.totalSupply.call(),
           actualTotalSupply = contract.actualTotalSupply.call();
-          
+
           newtotalSupply = newcontract.totalSupply.call(),
           newactualTotalSupply = newcontract.actualTotalSupply.call();
-          
-          assert.equal( Number(totalSupply), Number(actualTotalSupply, 'Loan increased from '+totalSupply+' to '+actualTotalSupply+' after loan was repaid') );
-          assert.equal( Number(newtotalSupply), Number(newactualTotalSupply, 'New Loan increased from '+newtotalSupply+' to '+newactualTotalSupply+' after loan was repaid') );
+
+          assert.equal( Number(totalSupply), Number(actualTotalSupply), 'Loan increased from '+totalSupply+' to '+actualTotalSupply+' after loan was repaid');
+          assert.equal( Number(newtotalSupply), Number(newactualTotalSupply), 'New Loan increased from '+newtotalSupply+' to '+newactualTotalSupply+' after loan was repaid');
           done();
         })
-        
+
     })
 
   });

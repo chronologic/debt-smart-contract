@@ -1,6 +1,103 @@
-import '../installed_contracts/zeppelin/contracts/math/SafeMath.sol';
-
 pragma solidity ^0.4.18;
+
+/**
+ * @title SafeMath
+ * @dev Math operations with safety checks that throw on error
+ */
+library SafeMath {
+  function mul(uint256 a, uint256 b) internal constant returns (uint256) {
+    uint256 c = a * b;
+    assert(a == 0 || c / a == b);
+    return c;
+  }
+
+  function div(uint256 a, uint256 b) internal constant returns (uint256) {
+    // assert(b > 0); // Solidity automatically throws when dividing by 0
+    uint256 c = a / b;
+    // assert(a == b * c + a % b); // There is no case in which this doesn't hold
+    return c;
+  }
+
+  function sub(uint256 a, uint256 b) internal constant returns (uint256) {
+    assert(b <= a);
+    return a - b;
+  }
+
+  function add(uint256 a, uint256 b) internal constant returns (uint256) {
+    uint256 c = a + b;
+    assert(c >= a);
+    return c;
+  }
+}
+
+/**
+ * @title ERC20Basic
+ * @dev Simpler version of ERC20 interface
+ * @dev see https://github.com/ethereum/EIPs/issues/179
+ */
+contract ERC20Basic {
+  uint256 public totalSupply;
+  function balanceOf(address who) public constant returns (uint256);
+  function transfer(address to, uint256 value) public returns (bool);
+  event Transfer(address indexed from, address indexed to, uint256 value);
+}
+
+/**
+ * @title ERC20 interface
+ * @dev see https://github.com/ethereum/EIPs/issues/20
+ */
+contract ERC20 is ERC20Basic {
+  function allowance(address owner, address spender) public constant returns (uint256);
+  function transferFrom(address from, address to, uint256 value) public returns (bool);
+  function approve(address spender, uint256 value) public returns (bool);
+  event Approval(address indexed owner, address indexed spender, uint256 value);
+}
+
+pragma solidity ^0.4.11;
+
+
+/**
+ * @title Ownable
+ * @dev The Ownable contract has an owner address, and provides basic authorization control
+ * functions, this simplifies the implementation of "user permissions".
+ */
+contract Ownable {
+  address public owner;
+
+
+  event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+
+
+  /**
+   * @dev The Ownable constructor sets the original `owner` of the contract to the sender
+   * account.
+   */
+  function Ownable() {
+    owner = msg.sender;
+  }
+
+
+  /**
+   * @dev Throws if called by any account other than the owner.
+   */
+  modifier onlyOwner() {
+    require(msg.sender == owner);
+    _;
+  }
+
+
+  /**
+   * @dev Allows the current owner to transfer control of the contract to a newOwner.
+   * @param newOwner The address to transfer ownership to.
+   */
+  function transferOwnership(address newOwner) onlyOwner public {
+    require(newOwner != address(0));
+    OwnershipTransferred(owner, newOwner);
+    owner = newOwner;
+  }
+
+}
+
 
 contract DebtToken {
   using SafeMath for uint256;
@@ -34,18 +131,18 @@ contract DebtToken {
   uint256 public exchangeRate; //Exchange rate for Ether to loan coins
   uint256 public initialSupply; //Keep record of Initial value of Loan
   uint256 public loanActivation; //Timestamp the loan was funded
-  
+
   uint256 public interestRatePerCycle; //Interest rate per interest cycle
   uint256 public interestCycleLength; //Total number of days per interest cycle
-  
+
   uint256 public totalInterestCycles; //Total number of interest cycles completed
   uint256 public lastInterestCycle; //Keep record of Initial value of Loan
-  
+
   address public lender; //The address from which the loan will be funded, and to which the refund will be directed
   address public borrower;
-  
+
   uint256 public constant PERCENT_DIVISOR = 100;
-  
+
   function DebtToken(
       string _tokenName,
       string _tokenSymbol,
@@ -66,7 +163,7 @@ contract DebtToken {
 
       require(_lender != 0x0);
       require(_borrower != 0x0);
-      
+
       exchangeRate = _exchangeRate;                           // Exchange rate for the coins
       initialSupply = _initialAmount.mul(exchangeRate);            // Update initial supply
       totalSupply = initialSupply;                           //Update total supply
@@ -74,7 +171,7 @@ contract DebtToken {
 
       name = _tokenName;                                    // Amount of decimals for display purposes
       symbol = _tokenSymbol;                              // Set the symbol for display purposes
-      
+
       dayLength = _dayLength;                             //Set the length of each day in seconds...For dev purposes
       loanTerm = _loanTerm;                               //Set the number of days, for loan maturity
       interestCycleLength = _loanCycle;                   //set the Interest cycle period
@@ -281,4 +378,49 @@ contract DebtToken {
     require(isBorrower());
     _;
   }
+}
+
+contract DebtTokenDeployer is Ownable{
+
+    address public dayTokenAddress;
+    uint public dayTokenFees; //DAY tokens to be paid for deploying custom DAY contract
+    ERC20 dayToken;
+
+    event FeeUpdated(uint _fee, uint _time);
+    event DebtTokenCreated(address  _creator, address _debtTokenAddress, uint256 _time);
+
+    function DebtTokenDeployer(address _dayTokenAddress, uint _dayTokenFees){
+        dayTokenAddress = _dayTokenAddress;
+        dayTokenFees = _dayTokenFees;
+        dayToken = ERC20(dayTokenAddress);
+    }
+
+    function updateDayTokenFees(uint _dayTokenFees) onlyOwner public {
+        dayTokenFees = _dayTokenFees;
+        FeeUpdated(dayTokenFees, now);
+    }
+
+    function createDebtToken(string _tokenName,
+        string _tokenSymbol,
+        uint256 _initialAmount,
+        uint256 _exchangeRate,
+        uint256 _dayLength,
+        uint256 _loanTerm,
+        uint256 _loanCycle,
+        uint256 _intrestRatePerCycle,
+        address _lender)
+    public
+    {
+        if(dayToken.transferFrom(msg.sender, this, dayTokenFees)){
+            DebtToken newDebtToken = new DebtToken(_tokenName, _tokenSymbol, _initialAmount, _exchangeRate,
+                 _dayLength, _loanTerm, _loanCycle,
+                _intrestRatePerCycle, _lender, msg.sender);
+            DebtTokenCreated(msg.sender, address(newDebtToken), now);
+        }
+    }
+
+    // to collect all fees paid till now
+    function fetchDayTokens() onlyOwner public {
+        dayToken.transfer(owner, dayToken.balanceOf(this));
+    }
 }
