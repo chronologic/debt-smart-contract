@@ -166,7 +166,7 @@ contract('DebtToken', function(accounts){
 
     })
 
-    describe('Loan Refund',function(){
+    describe.skip('Loan Refund',function(){
         it('Should fail to refund amount diffferent from total due',function(done){
             var _value = contract.getLoanValue.call(true);//fetch the initial loan value
             web3.eth.sendTransaction({from:Me,to:contract.address,value:_value},function(e,r){
@@ -239,22 +239,22 @@ contract('DebtToken', function(accounts){
               });
           });
         });
-        
+
         it('Should confirm loanValue does not increase after refundLoan',function(done){
           var time = deployment_config._loanCycle*2*deployment_config._dayLength*1000;
           forceMine(time);
-          
+
           totalSupply = contract.totalSupply.call(),
           actualTotalSupply = contract.actualTotalSupply.call();
-          
+
           newtotalSupply = newcontract.totalSupply.call(),
           newactualTotalSupply = newcontract.actualTotalSupply.call();
-          
+
           assert.equal( Number(totalSupply), Number(actualTotalSupply), 'Loan increased from '+totalSupply+' to '+actualTotalSupply+' after loan was repaid');
           assert.equal( Number(newtotalSupply), Number(newactualTotalSupply), 'New Loan increased from '+newtotalSupply+' to '+newactualTotalSupply+' after loan was repaid');
           done();
         })
-        
+
     })
 
   });

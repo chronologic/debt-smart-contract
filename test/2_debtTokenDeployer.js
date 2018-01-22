@@ -34,7 +34,7 @@ contract('DebtTokenDeployer', accounts => {
             deploymentConfig._tokenSymbol,
             deploymentConfig._initialAmount,
             deploymentConfig._exchangeRate,
-            deploymentConfig._decimalUnits,
+            ///deploymentConfig._decimalUnits,
             deploymentConfig._dayLength,
             deploymentConfig._loanTerm,
             deploymentConfig._loanCycle,
@@ -63,7 +63,7 @@ contract('DebtTokenDeployer', accounts => {
         const caller = accounts[1]
 
         assert.notEqual(owner, caller)
-                      
+
         try {
             await debtTokenDeployer.updateDayTokenFees(newFee, {from: caller})
         } catch(error) {
@@ -97,7 +97,7 @@ contract('DebtTokenDeployer', accounts => {
     it('should fail when fee was to small', async () => {
         const fee = deploymentConfig._deploymentFee.minus("1e18")
         await grantFeeTokens(simpleToken, debtTokenDeployer.address, fee)
-        
+
         try {
             await createDebtToken(debtTokenDeployer)
         } catch (error) {
@@ -110,7 +110,7 @@ contract('DebtTokenDeployer', accounts => {
 
     it('should pass when fee was to exactly as required', async () => {
         const fee = deploymentConfig._deploymentFee
-        
+
         await grantFeeTokens(simpleToken, debtTokenDeployer.address, fee)
         const tx = await createDebtToken(debtTokenDeployer)
 
@@ -124,7 +124,7 @@ contract('DebtTokenDeployer', accounts => {
 
     it('should take no more than transaction fee even if was granted more', async () => {
         const fee = deploymentConfig._deploymentFee.times(2)
-        
+
         await grantFeeTokens(simpleToken, debtTokenDeployer.address, fee) // we always granting 2*deployment fee to borrower
         const tx = await createDebtToken(debtTokenDeployer)
 
