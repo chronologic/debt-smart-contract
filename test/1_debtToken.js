@@ -61,7 +61,33 @@ contract('DebtToken', function(accounts){
         });
     });
 
-    describe('Loan Activation',function(){
+    describe('Exchange Rate:: ',function(){
+
+      it('Should test the Exchange Rate functionality',function(done){
+        var exchange  = Math.floor(Math.random()*10);
+        console.log(exchange);
+        DebtToken.new(
+            deployment_config._tokenName,
+            deployment_config._tokenSymbol,
+            deployment_config._initialAmount,
+            exchange,
+            deployment_config._dayLength,
+            deployment_config._loanTerm,
+            deployment_config._loanCycle,
+            deployment_config._interestRatePerCycle,
+            deployment_config._lender,
+            deployment_config._borrower
+        )
+        .then(function(inst){
+            var loanVal = inst.contract.getLoanValue.call(true);
+            assert.equal( Number(loanVal) , deployment_config._initialAmount, 'Exchange wrongly calculated');
+            done();
+        })
+      })
+      
+    })
+
+    describe('Loan Activation:: ',function(){
 
         it('Should fail to send wrong amount to the contract from non-lender',function(done){
             var _value = web3.toWei(2, 'ether');
