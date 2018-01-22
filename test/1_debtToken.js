@@ -132,7 +132,7 @@ contract('DebtToken', function(accounts){
         });
     })
 
-    describe('Interest Accruing ',function(){
+    describe('Interest Accruing:: ',function(){
         it('Should fetch isInterestStatusUpdated status',function(){
             var isInterestStatusUpdated = contract.isInterestStatusUpdated.call();
 
@@ -192,7 +192,7 @@ contract('DebtToken', function(accounts){
 
     })
 
-    describe('Loan Refund',function(){
+    describe('Loan Refund:: ',function(){
         it('Should fail to refund amount diffferent from total due',function(done){
             var _value = contract.getLoanValue.call(true);//fetch the initial loan value
             web3.eth.sendTransaction({from:Me,to:contract.address,value:_value},function(e,r){
