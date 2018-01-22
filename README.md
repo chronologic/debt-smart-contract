@@ -3,7 +3,9 @@
 
 
 
-### Deployment
+## Deployment
+
+### Debt Token
 
 #### Parameters
 
@@ -35,15 +37,35 @@
 #### Ropsten Test deployment
   Most recent version of the code is deployed at:
 
-  https://ropsten.etherscan.io/address/0x126c694e085517c257ecdad8f46455cf0403008c
   https://ropsten.etherscan.io/token/0x126c694e085517c257ecdad8f46455cf0403008c
+  https://ropsten.etherscan.io/address/0x126c694e085517c257ecdad8f46455cf0403008c
+
+
+### Debt Token Deployer
+
+####  Parameters
+
+  |--|--------|--------------|
+  |--|--------|--------------|
+  |* | _dayTokenAddress: |  Address of DAY Tokens |
+  |* |_dayTokenFees: | Number of DAY tokens, required as fees |
+
+  #### Deployed values
+    * _dayTokenAddress:  0x7941bc77e1d6bd4628467b6cd3650f20f745db06
+    * _dayTokenFees:  100000000000000000000
+
+  #### Ropsten Test deployment
+    Most recent version of the code is deployed at:
+
+    https://ropsten.etherscan.io/address/0x9d396156594b6a665fe28397e7bff3679dc24283
+
 
 ### Tests
   * Test actual functionality of debt-smart-contract
   ~~~
-  truffle test test/debtToken.js
+  truffle test test/1_debtToken.js
   ~~~
-  * Test that resricted Token functions are restricted :
+  * Test that actual functionality of debt-smart-contract deployer :
   ~~~
-  truffle test test/standardToken.js
+  truffle test test/2_debtTokenDeployer.js
   ~~~
