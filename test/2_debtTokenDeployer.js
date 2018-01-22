@@ -57,43 +57,70 @@ contract('DebtTokenDeployer', accounts => {
         assert.equal(simpleToken.address, debtTokenDeployer.contract.dayTokenAddress())
     })
 
-    describe('Deployer Fees Update::',function(){
-        it('should only allow owner to change the fee for deployment', async () => {
-            const newFee = deploymentConfig._deploymentFee.times(2)
-            const owner = await debtTokenDeployer.owner()
-            const caller = accounts[1]
+    describe('Deployer Ownership::',function(){
+      var _owner = accounts[0];
+      var _newOwner = accounts[1];
 
-            assert.notEqual(owner, caller)
+      it('should fail to transfer Ownership from Rogue Address',async () => {
+        try{
+          await debtTokenDeployer.transferOwnership(accounts[2], {from: _newOwner});
+          assert.fail("Rogue address successfully transferred ownership");
+        }
+        catch(e){
+          assert.notEqual(e,null,"Rogue address unable to transfer ownership");
+        }
+      })
 
-            try {
-                await debtTokenDeployer.updateDayTokenFees(newFee, {from: caller})
-            } catch(error) {
-                assert.isNotNull(error)
-                return
-            }
+      it('should transfer Ownership',async () => {
+        try{
+          await debtTokenDeployer.transferOwnership(_newOwner, {from: _owner})
+          var newOwner = await debtTokenDeployer.owner.call();
+          assert.equal(_newOwner,newOwner, 'Ownership transferred to wrong address');
+        }
+        catch(e){
+          assert.equal(e,null,"Owner unable to transfer ownership")
+        }
+      })
 
-            assert.fail("Contract should only owner to change the fee")
-        })
-
-        it('should allow to change the fee for deployment', async () => {
-            const newFee = deploymentConfig._deploymentFee.times(2)
-            const tx = await debtTokenDeployer.updateDayTokenFees(newFee)
-
-            const foundEvent = tx.logs.find(ev => ev.event == 'FeeUpdated');
-
-            assert.isTrue(foundEvent.args._fee.equals(newFee));
-        })
     })
 
-    it('should fail when no fee was sent before deployment', async () => {
-        try {
-            await createDebtToken(debtTokenDeployer)
-        } catch (error) {
-            assert.isNotNull(error)
-            return
-        }
+    describe('Deployer Fees Update::',function(){
+      it('should only allow owner to change the fee for deployment', async () => {
+          const newFee = deploymentConfig._deploymentFee.times(2)
+          const owner = await debtTokenDeployer.owner()
+          const caller = accounts[1]
 
-        assert.fail("Contract deployment passed without the fee")
+          assert.notEqual(owner, caller)
+
+          try {
+              await debtTokenDeployer.updateDayTokenFees(newFee, {from: caller})
+          } catch(error) {
+              assert.isNotNull(error)
+              return
+          }
+
+          assert.fail("Contract should only owner to change the fee")
+      })
+
+      it('should allow to change the fee for deployment', async () => {
+          const newFee = deploymentConfig._deploymentFee.times(2)
+          const tx = await debtTokenDeployer.updateDayTokenFees(newFee)
+
+          const foundEvent = tx.logs.find(ev => ev.event == 'FeeUpdated');
+
+          assert.isTrue(foundEvent.args._fee.equals(newFee));
+      })
+
+      it('should fail when no fee was sent before deployment', async () => {
+          try {
+              await createDebtToken(debtTokenDeployer)
+          } catch (error) {
+              assert.isNotNull(error)
+              return
+          }
+
+          assert.fail("Contract deployment passed without the fee")
+      })
     })
 
     describe('Create Debt Token::',function(){
