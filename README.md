@@ -56,11 +56,11 @@ ____
 
   #### Ropsten Test deployment
   Most recent version of the code is deployed at:  
-  
+
   https://ropsten.etherscan.io/address/0x9d396156594b6a665fe28397e7bff3679dc24283
 
 
-### Tests
+## Tests
   * Test actual functionality of debt-smart-contract
   ~~~
   truffle test test/1_debtToken.js
