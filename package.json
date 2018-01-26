@@ -7,7 +7,7 @@
     "test": "test"
   },
   "scripts": {
-    "test": "truffle test",
+    "test": "truffle test --network truffle_develop",
     "lint:sol": "./node_modules/solium/bin/solium.js -d ./contracts"
   },
   "repository": {
